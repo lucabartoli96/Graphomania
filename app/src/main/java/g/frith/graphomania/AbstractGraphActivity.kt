@@ -10,11 +10,15 @@ import android.os.Bundle
 import android.support.v4.view.GestureDetectorCompat
 import android.view.*
 import kotlinx.android.synthetic.main.activity_abstract_graph.*
+import android.util.Log
+import java.io.*
 
 
 abstract class AbstractGraphActivity : AppCompatActivity() {
 
     companion object {
+
+        private val fileName = {type: String, name: String -> "${type}_$name.json"}
 
         const val NODE_RADIUS = 35f
         const val ENLARGE_TOUCH = 10f
@@ -61,6 +65,11 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     }
 
+    private var graphView: GraphView? = null
+    protected lateinit var name: String
+
+    abstract val type: String
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,9 +79,66 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         graphView?.let {
             mainContainer.addView(it)
         }
+        name = intent.getStringExtra("name")
+
+
+        if ( File(filesDir, fileName(type, name)).exists() )
+            load()
     }
 
-    private var graphView: GraphView? = null
+    abstract fun getJson(): String
+    abstract fun parseJson(text: String)
+
+    private fun load() {
+
+        try {
+            val inputStream = openFileInput(fileName(type, name))
+
+            if (inputStream != null) {
+                val inputStreamReader = InputStreamReader(inputStream)
+                val bufferedReader = BufferedReader(inputStreamReader)
+
+                val allText = bufferedReader.use(BufferedReader::readText)
+
+                parseJson(allText)
+
+                inputStream.close()
+            }
+        } catch (e: FileNotFoundException) {
+            Log.e("graph activity", "File not found: " + e.toString())
+        } catch (e: IOException) {
+            Log.e("graph activity", "Can not read file: " + e.toString())
+        }
+
+    }
+
+    private fun save() {
+
+        try {
+            val file = openFileOutput(fileName(type, name),  Context.MODE_PRIVATE)
+            val outputStreamWriter = OutputStreamWriter(file)
+            outputStreamWriter.write(getJson())
+            outputStreamWriter.close()
+        } catch (e: IOException) {
+            Log.e("Exception", "File write failed: " + e.toString())
+        }
+
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?) = when(item?.itemId) {
+        R.id.save -> {
+            save()
+            true
+        }
+        else -> false
+    }
+
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.graph_toolbar, menu)
+        supportActionBar?.title = name
+        return super.onCreateOptionsMenu(menu)
+    }
 
 
     protected fun graphInvalidate() {

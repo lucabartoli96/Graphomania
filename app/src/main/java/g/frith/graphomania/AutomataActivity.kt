@@ -1,9 +1,12 @@
 package g.frith.graphomania
 
 import android.graphics.Canvas
+import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
+import kotlinx.android.synthetic.main.activity_abstract_graph.*
+import org.json.JSONObject
 import java.util.*
 
 
@@ -46,6 +49,8 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
             return sb.toString()
         }
     }
+
+    override val type = "automata"
 
     private var random = Random(GregorianCalendar().timeInMillis)
 
@@ -127,7 +132,7 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
     }
 
 
-    private fun getJson(): String {
+    override fun getJson(): String {
 
         val nodesJson = JsonArr()
         val edgesJson = JsonArr()
@@ -170,34 +175,79 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
         }
 
         val graphJson = JsonObj {
-            "type" To "Automata"
+            "type" To "automata"
             "name" To "EvenCs"
             "nodes" To nodesJson
             "edges" To edgesJson
-            "loop" To loopsJson
+            "loops" To loopsJson
         }
 
         return graphJson.toString()
     }
 
-    private fun save() {
 
-        getJson()
+    override fun parseJson(text: String) {
 
-    }
+        val graph = JSONObject(text)
 
-    override fun onOptionsItemSelected(item: MenuItem?) = when(item?.itemId) {
-        R.id.save -> {
-            save()
-            true
+        val nodesJson = graph.getJSONArray("nodes")
+
+        for ( idx in 0 until nodesJson.length() ) {
+            val nodeJson = nodesJson.getJSONObject(idx)
+
+            nodes.add(AutomataNode(
+                    nodeJson.getDouble("x").toFloat(),
+                    nodeJson.getDouble("y").toFloat(),
+                    nodeJson.getBoolean("final")
+            ))
         }
-        else -> false
-    }
+
+        val edgesJson = graph.getJSONArray("edges")
+
+        for ( idx in 0 until edgesJson.length()) {
+            val edgeJson = edgesJson.getJSONObject(idx)
+
+            val i = edgeJson.getInt("from")
+            val j = edgeJson.getInt("to")
+
+            val symbolsJson = edgeJson.getJSONArray("symbols")
+
+            val symbols = mutableListOf<Char>()
+
+            for ( sy in 0 until symbolsJson.length() ) {
+                symbols.add(symbolsJson.getString(sy)[0])
+            }
+
+            edges.add(AutomataEdge(
+                    nodes[i], nodes[j],
+                    edgeJson.getDouble("curve").toFloat(),
+                    symbols
+            ))
+        }
 
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.graph_toolbar, menu)
-        return super.onCreateOptionsMenu(menu)
+        val loopsJson = graph.getJSONArray("loops")
+
+        for ( idx in 0 until loopsJson.length()) {
+            val loopJson = loopsJson.getJSONObject(idx)
+
+            val i = loopJson.getInt("node")
+
+            val symbolsJson = loopJson.getJSONArray("symbols")
+
+            val symbols = mutableListOf<Char>()
+
+            for ( sy in 0 until symbolsJson.length() ) {
+                symbols.add(symbolsJson.getString(sy)[0])
+            }
+
+            loops.add(AutomataLoop(
+                    nodes[i],
+                    loopJson.getDouble("angle").toFloat(),
+                    symbols
+            ))
+        }
+
     }
 
 

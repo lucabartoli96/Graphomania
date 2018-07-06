@@ -7,4 +7,10 @@
     <string name="save">Save</string>
     <string name="run">Run</string>
     <string name="download">Download</string>
+
+    <string name="pick_type">Pick a type</string>
+    <string name="choose_name">Choose a name</string>
+
+    <string name="example_name">fooProject</string>
+
 </resources>
