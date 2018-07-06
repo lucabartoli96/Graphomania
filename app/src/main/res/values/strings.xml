@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Graphomania</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="save">Save</string>
+    <string name="run">Run</string>
+    <string name="download">Download</string>
+</resources>
