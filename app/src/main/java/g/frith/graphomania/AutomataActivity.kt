@@ -1,11 +1,7 @@
 package g.frith.graphomania
 
 import android.graphics.Canvas
-import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.MotionEvent
-import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import org.json.JSONObject
 import java.util.*
 
