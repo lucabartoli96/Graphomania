@@ -318,8 +318,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     /**
      *
      * nodes and edges provide the base of the data structure
-     * that stores the whole graph. Edges reference are also
-     * stored in "edges" field in nodes
+     * that stores the whole graph.
      *
      */
     protected val nodes = mutableListOf<Node>()
@@ -351,10 +350,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             node.draw(canvas)
         }
 
-        for (node in nodes) {
-            for ( edge in node.edges ) {
-                edge.draw(canvas)
-            }
+        for ( edge in edges ) {
+            edge.draw(canvas)
         }
     }
 
