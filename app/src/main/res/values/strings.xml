@@ -13,4 +13,7 @@
 
     <string name="example_name">fooProject</string>
 
+    <string name="dont_match">Invalid name (alphanumeric characters only)</string>
+    <string name="name_exists">Name already exists</string>
+
 </resources>

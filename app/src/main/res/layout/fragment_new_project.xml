@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".NewProjectFragment">
+    tools:context=".NewProjectDialog">
 
 
     <LinearLayout
@@ -25,7 +25,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="87dp"
+        android:layout_height="99dp"
         android:orientation="vertical">
 
         <TextView
@@ -41,5 +41,10 @@
             android:ems="10"
             android:hint="@string/example_name"
             android:inputType="text|textPersonName" />
+
+        <TextView
+            android:id="@+id/errorMsg"
+            android:layout_width="match_parent"
+            android:layout_height="29dp" />
     </LinearLayout>
 </LinearLayout>

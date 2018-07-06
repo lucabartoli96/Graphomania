@@ -6,12 +6,12 @@ import android.os.Bundle
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.app.AlertDialog
-import java.io.File
 import java.util.regex.Pattern
 
 
 class MainActivity : AppCompatActivity(), ProjecManager {
 
+    private val filePattern = Pattern.compile("^([a-z]+)_(\\w+).json$")
 
     private val types = mapOf(
             "automata" to AutomataActivity::class.java
@@ -23,51 +23,53 @@ class MainActivity : AppCompatActivity(), ProjecManager {
         startActivity(intent)
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        newProject.setOnClickListener {
-            val ft =  supportFragmentManager.beginTransaction()
-            NewProjectFragment.newInstance(types.keys.toTypedArray())
-                    .show(ft, "NewProject")
-        }
+        newProject.setOnClickListener { showNewProjectDialog() }
+        loadProject.setOnClickListener { showLoadProjectDialog() }
 
-        loadProject.setOnClickListener {
+    }
 
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle("Choose a project")
 
-            val pattern = Pattern.compile("^([a-z]+)_(\\w+).json$")
+    private fun showNewProjectDialog() {
+        val ft =  supportFragmentManager.beginTransaction()
+        NewProjectDialog.newInstance(types.keys.toTypedArray())
+                .show(ft, "New Project")
+    }
 
-            val typeList = mutableListOf<String>()
-            val nameList = mutableListOf<String>()
+    private fun showLoadProjectDialog() {
 
-            val optionsList = mutableListOf<String>()
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Choose a project")
 
-            for ( file in fileList() ) {
-                Log.d("Main", file)
-                val matcher = pattern.matcher(file)
-                if ( matcher.matches() ) {
-                    //PER CANCELLARE
-                    //File(filesDir, file).delete()
-                    val type = matcher.group(1)
-                    val name = matcher.group(2)
+        val typeList = mutableListOf<String>()
+        val nameList = mutableListOf<String>()
 
-                    typeList.add(type)
-                    nameList.add(name)
+        val optionsList = mutableListOf<String>()
 
-                    optionsList.add("$name ($type)")
-                }
+        for (file in fileList()) {
+            Log.d("Main", file)
+            val matcher = filePattern.matcher(file)
+            if (matcher.matches()) {
+                //PER CANCELLARE
+                //File(filesDir, file).delete()
+                val type = matcher.group(1)
+                val name = matcher.group(2)
+
+                typeList.add(type)
+                nameList.add(name)
+
+                optionsList.add("$name ($type)")
             }
-
-            builder.setItems(optionsList.toTypedArray(), { dialog, which ->
-                launchProject(typeList[which], nameList[which])
-            })
-
-            val dialog = builder.create()
-            dialog.show()
         }
 
+        builder.setItems(optionsList.toTypedArray(), { dialog, which ->
+            launchProject(typeList[which], nameList[which])
+        })
+
+        builder.create().show()
     }
 }

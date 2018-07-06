@@ -6,13 +6,12 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
 import android.text.TextWatcher
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.fragment_new_project.view.*
 import android.text.Editable
 import android.widget.Button
+import java.io.File
 
 
 private const val OPTIONS = "options"
@@ -23,11 +22,15 @@ interface ProjecManager {
 }
 
 
-class NewProjectFragment : DialogFragment() {
+class NewProjectDialog : DialogFragment() {
+
+    private val fileName = { type: String, name: String -> "${type}_$name.json" }
 
     private var listener: ProjecManager? = null
     private lateinit var options: Array<String>
     private lateinit var okButton: Button
+
+    private val pattern = Regex("^\\w+$")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +58,31 @@ class NewProjectFragment : DialogFragment() {
 
             override fun onTextChanged(s: CharSequence, start: Int,
                                        before: Int, count: Int) {
+
+
+                view.errorMsg.visibility = View.GONE
+
+                if (s.isEmpty()) {
+                    okButton.isEnabled = false
+                } else if (!s.matches(pattern)) {
+                    view.errorMsg.text = getString(R.string.dont_match)
+                    view.errorMsg.visibility = View.VISIBLE
+                    okButton.isEnabled = false
+                } else {
+                    val exists = File(activity!!.filesDir, fileName(
+                            view.typeSpinner.selectedItem.toString(),
+                            s.toString()
+                    )).exists()
+
+                    if (exists) {
+                        view.errorMsg.text = getString(R.string.name_exists)
+                        okButton.isEnabled = false
+                        view.errorMsg.visibility = View.VISIBLE
+                    } else {
+                        okButton.isEnabled = true
+                    }
+                }
+
                 okButton.isEnabled = !s.isEmpty()
             }
         })
@@ -106,46 +134,7 @@ class NewProjectFragment : DialogFragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance(options: Array<String>) = NewProjectFragment().apply {
-            arguments = Bundle().apply {
-                putStringArray(OPTIONS, options)
-            }
-        }
-    }
-}
-
-
-class LoadProjectFragment : DialogFragment() {
-
-    private var listener: ProjecManager? = null
-
-
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_load_project, container, false)
-    }
-
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is ProjecManager) {
-            listener = context
-        } else {
-            throw RuntimeException(context.toString() +
-                    " must implement ProjectManager")
-        }
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        listener = null
-    }
-
-
-    companion object {
-        @JvmStatic
-        fun newInstance(options: Array<String>) = NewProjectFragment().apply {
+        fun newInstance(options: Array<String>) = NewProjectDialog().apply {
             arguments = Bundle().apply {
                 putStringArray(OPTIONS, options)
             }
