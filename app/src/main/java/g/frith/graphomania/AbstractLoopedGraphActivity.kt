@@ -4,10 +4,17 @@ import android.graphics.Canvas
 import android.view.MotionEvent
 
 abstract class AbstractLoopedGraphActivity : AbstractGraphActivity() {
+
+
     companion object {
         const val LOOP_CURVE = 50f
     }
 
+    /**
+     *
+     * Concrete "looped" components classes
+     *
+     */
     protected open class LoopedNode(x: Float, y: Float): Node(x, y) {
         var loop: Loop? = null
     }
@@ -38,7 +45,8 @@ abstract class AbstractLoopedGraphActivity : AbstractGraphActivity() {
         }
 
         override fun draw(canvas: Canvas) {
-            //TODO
+            canvas.drawLoop(node.x, node.y,  LOOP_CURVE, angle,
+                    NODE_RADIUS, getArcPaint())
         }
 
         override fun contains(fingerX: Float, fingerY: Float): Boolean {
@@ -55,11 +63,33 @@ abstract class AbstractLoopedGraphActivity : AbstractGraphActivity() {
     }
 
 
+    /**
+     *
+     * loops completes graph data structure
+     *
+     */
     protected val loops = mutableListOf<Loop>()
+
+
+
+    /**
+     *
+     * Extension of base class Abstract Graph, to include loops
+     *
+     */
+    override fun getComponentIterable(): Iterable<GraphComponent> {
+        return super.getComponentIterable() union loops
+    }
+
 
     override fun deselectAll() {
         super.deselectAll()
         Loop.selected = null
+    }
+
+    override fun getSelectedComponent(): GraphComponent? {
+        val component = super.getSelectedComponent()
+        return if ( component !== null ) component else Loop.selected
     }
 
     override fun drawComponents(canvas: Canvas) {
@@ -70,23 +100,31 @@ abstract class AbstractLoopedGraphActivity : AbstractGraphActivity() {
         }
     }
 
-    override fun getComponentIterable(): Iterable<GraphComponent> {
-        return super.getComponentIterable() union loops
-    }
 
-    override fun getSelectedComponent(): GraphComponent? {
-        val component = super.getSelectedComponent()
-        return if ( component !== null ) component else Loop.selected
-    }
-
-    private fun getClickedLoop(e: MotionEvent): Loop? {
+    /**
+     *  Retrieve loops when clicked
+     */
+    protected fun getClickedLoop(e: MotionEvent): Loop? {
         return loops.find { it.contains(e.x, e.y) }
     }
 
+
+
+    /**
+     *
+     * Subclass specific methods
+     *
+     */
     protected abstract fun createLoop(node: Node)
     protected abstract fun removeLoop(loop: Loop)
 
 
+
+    /**
+     *
+     * Gestures listeners
+     *
+     */
     override fun secondPointerDown(x: Float, y: Float) {
 
         val firstNode = Node.selected

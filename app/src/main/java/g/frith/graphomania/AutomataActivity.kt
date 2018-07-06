@@ -13,14 +13,18 @@ import java.util.*
 class AutomataActivity : AbstractLoopedGraphActivity(),
         SymbolPickerDialog.OnFragmentInteractionListener {
 
+
     companion object {
 
         const val EDGE_CURVE = 40f
 
+
+        /**
+         *  fun to format label strings
+         */
         private fun joinToLabel(symbols: List<Char>): String {
 
             val sb = StringBuilder()
-
             var contiguity = false
 
             sb.append(symbols[0])
@@ -48,18 +52,42 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
             return sb.toString()
         }
+
     }
 
+
+    /**
+     * override of type property
+     */
     override val type = "automata"
 
+
+
+    /**
+     * to get random angles
+     */
     private var random = Random(GregorianCalendar().timeInMillis)
 
+
+
+    /**
+     *
+     * store components to be created/modified,
+     * while symbolpicker is open
+     *
+     */
     private var pendingEdge: Edge? = null
     private var pendingLoop: Loop? = null
     private var modifyingEdge: AutomataEdge? = null
     private var modifyingLoop: AutomataLoop? = null
 
 
+
+    /**
+     *
+     * Derived "Automata" classes
+     *
+     */
     private class AutomataNode(x: Float, y: Float, var final: Boolean) : LoopedNode(x, y) {
 
         override fun draw(canvas: Canvas) {
@@ -77,6 +105,7 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
             final = !final
         }
     }
+
 
     private class AutomataEdge(from: Node, to: Node, curve: Float, symbols: List<Char>) :
             Edge(from, to, curve) {
@@ -132,6 +161,12 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
     }
 
 
+
+    /**
+     *
+     * Json related classes
+     *
+     */
     override fun getJson(): String {
 
         val nodesJson = JsonArr()
@@ -251,11 +286,67 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
     }
 
 
+
+    /**
+     *
+     * Concrete creation deletion methods
+     *
+     */
     override fun createNode(x: Float, y: Float) {
         nodes.add(AutomataNode(x, y, false))
     }
 
 
+    override fun createEdge(firstNode: Node, node: Node) {
+        val found = edges.find {
+            it.from === firstNode && it.to === node
+        }
+
+        if ( found === null ) {
+            pendingEdge = Edge(firstNode, node, EDGE_CURVE)
+            openSymbolPicker()
+        }
+    }
+
+    override fun createLoop(node: Node) {
+        val found = loops.find {
+            it.node === node
+        }
+
+        if ( found === null ) {
+            pendingLoop = Loop(node, random.nextAngleDegrees())
+            openSymbolPicker()
+        }
+
+    }
+
+    override fun removeNode(node: Node) {
+        nodes.remove(node)
+        edges.removeAll { it.from == node || it.to == node }
+        loops.removeAll { it.node === node }
+        graphInvalidate()
+    }
+
+    override fun removeEdge(edge: Edge) {
+        edges.remove(edge)
+        edge.from.edges.remove(edge)
+        graphInvalidate()
+    }
+
+    override fun removeLoop(loop: Loop) {
+        loops.remove(loop)
+        (loop.node as LoopedNode).loop = null
+        graphInvalidate()
+    }
+
+
+
+
+    /**
+     *
+     * Symbol picker related functions
+     *
+     */
     private fun openSymbolPicker( symbols: List<Char>? = null ) {
         val ft =  supportFragmentManager.beginTransaction()
         SymbolPickerDialog.newInstance(symbols).show(ft, "SymbolPicker")
@@ -297,46 +388,13 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
     }
 
 
-    override fun createEdge(firstNode: Node, node: Node) {
-        val found = edges.find {
-            it.from === firstNode && it.to === node
-        }
 
-        if ( found === null ) {
-            pendingEdge = Edge(firstNode, node, EDGE_CURVE)
-            openSymbolPicker()
-        }
-    }
 
-    override fun createLoop(node: Node) {
-        val found = loops.find {
-            it.node === node
-        }
-
-        if ( found === null ) {
-            pendingLoop = Loop(node, random.nextAngleDegrees())
-            openSymbolPicker()
-        }
-
-    }
-
-    override fun removeNode(node: Node) {
-        nodes.remove(node)
-        edges.removeAll { it.from == node || it.to == node }
-        loops.removeAll { it.node === node }
-        graphInvalidate()
-    }
-
-    override fun removeEdge(edge: Edge) {
-        edges.remove(edge)
-        graphInvalidate()
-    }
-
-    override fun removeLoop(loop: Loop) {
-        loops.remove(loop)
-        graphInvalidate()
-    }
-
+    /**
+     *
+     * Gestures listeners
+     *
+     */
     override fun doubleTap(e: MotionEvent) {
         val node = getClickedNode(e)
 

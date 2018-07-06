@@ -57,13 +57,6 @@ fun Canvas.drawLabel(middleX: Float, middleY: Float, text: String, textPaint: Pa
     drawText(text, textX, textY, textPaint)
 }
 
-//private val dotPaint = Paint()
-//
-//
-//fun Canvas.drawDot(p: PointF) {
-//    val size = 2
-//    this.drawRect(p.x - size, p.y -size, p.x + size, p.y + size, dotPaint)
-//}
 
 
 private fun Canvas.drawStraightEdgeMain(fromX: Float, fromY: Float, //from
@@ -209,14 +202,14 @@ private fun Canvas.drawLoopMain(fromX: Float, fromY: Float, radius: Float, angle
 
 
 
-private fun Canvas.drawStraightEdge(fromX: Float, fromY: Float, //from
+fun Canvas.drawStraightEdge(fromX: Float, fromY: Float, //from
                                     toX: Float, toY: Float, //to
                                     paint: Paint, offset: Float) { //other params
     drawStraightEdgeMain(fromX, fromY, toX, toY, paint, offset)
 }
 
 
-private fun Canvas.drawArrowedStraightEdge(fromX: Float, fromY: Float, //from
+fun Canvas.drawArrowedStraightEdge(fromX: Float, fromY: Float, //from
                                            toX: Float, toY: Float, //to
                                            paint: Paint, offset: Float, //other params
                                            arrowRadius: Float, arrowAngle: Float,
@@ -225,6 +218,7 @@ private fun Canvas.drawArrowedStraightEdge(fromX: Float, fromY: Float, //from
     drawStraightEdgeMain(fromX, fromY, toX, toY, paint, offset,
             arrowRadius, arrowAngle, arrowPaint)
 }
+
 
 
 
@@ -275,7 +269,33 @@ fun Canvas.drawArrowedCurveLabeledEdge(fromX: Float, fromY: Float, //from
     )
 }
 
-//TODO: finire interfaccia Loop
+
+
+
+fun Canvas.drawLoop(fromX: Float, fromY: Float, radius: Float, angle: Float,
+                    offset: Float, paint: Paint) {
+    drawLoopMain(fromX, fromY, radius, angle, offset, paint)
+}
+
+
+fun Canvas.drawArrowedLoop(fromX: Float, fromY: Float, radius: Float, angle: Float,
+                           offset: Float, paint: Paint,
+                           arrowRadius: Float, arrowAngle: Float,
+                           arrowPaint: Paint) {
+
+    drawLoopMain(fromX, fromY, radius, angle, offset, paint,
+            arrowRadius, arrowAngle, arrowPaint)
+}
+
+
+fun Canvas.drawLabeledLoop(fromX: Float, fromY: Float, radius: Float, angle: Float,
+                           offset: Float, paint: Paint,
+                           text: String, textPaint: Paint) {
+
+    drawLoopMain(fromX, fromY, radius, angle, offset, paint,
+            text=text, textPaint=textPaint)
+}
+
 
 fun Canvas.drawArrowedLabeledLoop(fromX: Float, fromY: Float, radius: Float, angle: Float,
                                   offset: Float, paint: Paint,

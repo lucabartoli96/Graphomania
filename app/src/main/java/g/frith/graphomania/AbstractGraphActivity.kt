@@ -20,6 +20,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         private val fileName = {type: String, name: String -> "${type}_$name.json"}
 
+
+        // Canvas-related constants (sizes and paints)
         const val NODE_RADIUS = 35f
         const val ENLARGE_TOUCH = 10f
         const val ARROW_ANGLE = 30f
@@ -65,30 +67,96 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     }
 
-    private var graphView: GraphView? = null
+
+
+    /**
+     * Unique couple that describes "project"
+     * type must be overridden with string literal
+     */
+    abstract val type: String
     protected lateinit var name: String
 
-    abstract val type: String
 
 
+    /**
+     *
+     * Graph view is where the graph is drawn,
+     * private, accessed only to invalidate
+     *
+     */
+    private lateinit var graphView: GraphView
+
+    protected fun graphInvalidate() {
+        graphView.postInvalidate()
+    }
+
+    private inner class GraphView(context: Context) : View(context) {
+
+        override fun onDraw(canvas: Canvas?) {
+            super.onDraw(canvas)
+            if ( canvas !== null ) {
+                drawComponents(canvas)
+            }
+        }
+
+    }
+
+
+
+    /**
+     *
+     * Android Activity override funs
+     *
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_abstract_graph)
         setSupportActionBar(graphToolbar)
-        initGraphView()
-        graphView?.let {
-            mainContainer.addView(it)
-        }
+
+        graphView = GraphView(this)
+        mainContainer.addView(graphView)
+
+        initGraphGestures()
+
         name = intent.getStringExtra("name")
 
-
-        if ( File(filesDir, fileName(type, name)).exists() )
+        if ( File(filesDir, fileName(type, name)).exists() ) {
             load()
+        }
     }
 
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.graph_toolbar, menu)
+        supportActionBar?.title = name
+        return super.onCreateOptionsMenu(menu)
+    }
+
+
+
+    override fun onOptionsItemSelected(item: MenuItem?) = when(item?.itemId) {
+        R.id.save -> {
+            save()
+            true
+        }
+        else -> false
+    }
+
+
+
+    /**
+     * Json related functions
+     */
     abstract fun getJson(): String
     abstract fun parseJson(text: String)
 
+
+
+    /**
+     *
+     * Read/Write functions
+     *
+     */
     private fun load() {
 
         try {
@@ -125,27 +193,13 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?) = when(item?.itemId) {
-        R.id.save -> {
-            save()
-            true
-        }
-        else -> false
-    }
 
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.graph_toolbar, menu)
-        supportActionBar?.title = name
-        return super.onCreateOptionsMenu(menu)
-    }
-
-
-    protected fun graphInvalidate() {
-        graphView?.postInvalidate()
-    }
-
-
+    /**
+     *
+     * Graphic/Logic components of graph, base of class hierarchy
+     *
+     */
     protected abstract class GraphComponent {
 
         abstract fun select()
@@ -180,6 +234,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         }
 
     }
+
 
     protected open class Node(var x: Float, var y: Float) : GraphComponent() {
 
@@ -218,6 +273,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     }
 
+
     protected open class Edge(val from: Node, val to: Node, var curve: Float) : GraphComponent() {
 
         companion object {
@@ -238,7 +294,9 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         }
 
         override fun draw(canvas: Canvas) {
-            //TODO
+            canvas.drawStraightEdge(
+                    from.x, from.y, to.x, to.y, getArcPaint(), NODE_RADIUS
+            )
         }
 
         override fun contains(fingerX: Float, fingerY: Float): Boolean {
@@ -257,13 +315,34 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     }
 
 
+    /**
+     *
+     * nodes and edges provide the base of the data structure
+     * that stores the whole graph. Edges reference are also
+     * stored in "edges" field in nodes
+     *
+     */
     protected val nodes = mutableListOf<Node>()
     protected val edges = mutableListOf<Edge>()
 
 
+
+    /**
+     *
+     * Operations on the lists or selected items
+     *
+     */
+    protected open fun getComponentIterable(): Iterable<GraphComponent> {
+        return nodes union edges
+    }
+
     protected open fun deselectAll() {
         Node.selected = null
         Edge.selected = null
+    }
+
+    protected open fun getSelectedComponent(): GraphComponent? {
+        return if ( Node.selected !== null) Node.selected else Edge.selected
     }
 
     protected open fun drawComponents(canvas: Canvas) {
@@ -272,19 +351,20 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             node.draw(canvas)
         }
 
-        for (edge in edges) {
-            edge.draw(canvas)
+        for (node in nodes) {
+            for ( edge in node.edges ) {
+                edge.draw(canvas)
+            }
         }
     }
 
-    protected open fun getComponentIterable(): Iterable<GraphComponent> {
-        return nodes union edges
-    }
 
-    protected open fun getSelectedComponent(): GraphComponent? {
-        return if ( Node.selected !== null) Node.selected else Edge.selected
-    }
 
+    /**
+     *
+     * Functions to retrieve components when clicked
+     *
+     */
     protected fun getClickedComponent(x: Float, y: Float): GraphComponent? {
         return getComponentIterable().find { it.contains(x, y) }
     }
@@ -310,12 +390,26 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         return getClickedEdge(e.x, e.y)
     }
 
+
+
+
+    /**
+     *
+     * Subclass specific methods
+     *
+     */
     protected abstract fun createNode(x: Float, y: Float)
     protected abstract fun createEdge(firstNode: Node, node: Node)
     protected abstract fun removeNode(node: Node)
     protected abstract fun removeEdge(edge: Edge)
 
 
+
+    /**
+     *
+     * Gestures event listeners
+     *
+     */
     private fun firstPointerDown(e: MotionEvent) {
         getClickedComponent(e)?.select()
         graphInvalidate()
@@ -380,12 +474,18 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     }
 
 
+
+
+    /**
+     *
+     *  Init Graph Gestures listeners
+     *
+     */
     @SuppressLint("ClickableViewAccessibility")
-    private fun initGraphView() {
+    private fun initGraphGestures() {
 
         val gestures = GestureDetectorCompat(this, GraphGestures())
-        graphView = GraphView(this)
-        graphView?.setOnTouchListener {view, motionEvent ->
+        graphView.setOnTouchListener {view, motionEvent ->
             gestures.onTouchEvent(motionEvent)
 
             if (motionEvent != null ) {
@@ -446,14 +546,4 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     }
 
-    private inner class GraphView(context: Context) : View(context) {
-
-        override fun onDraw(canvas: Canvas?) {
-            super.onDraw(canvas)
-            if ( canvas !== null ) {
-                drawComponents(canvas)
-            }
-        }
-
-    }
 }
