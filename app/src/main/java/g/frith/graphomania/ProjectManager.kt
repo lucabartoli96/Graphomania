@@ -3,6 +3,7 @@ package g.frith.graphomania
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
 import android.text.TextWatcher
@@ -24,30 +25,28 @@ interface ProjecManager {
 
 class NewProjectDialog : DialogFragment() {
 
-    private val fileName = { type: String, name: String -> "${type}_$name.json" }
-
     private var listener: ProjecManager? = null
+
+
     private lateinit var options: Array<String>
     private lateinit var okButton: Button
-
     private val pattern = Regex("^\\w+$")
+    private val fileName = { type: String, name: String -> "${type}_$name.json" }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            options = it.getStringArray(OPTIONS)
-        }
-    }
-
-
+    /**
+     *
+     * Layout initialization ugly code
+     *
+     */
     private fun initWidgets(view: View) {
 
         val adapter = ArrayAdapter<String>(
                 context, android.R.layout.simple_spinner_item, options
         )
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-
         view.typeSpinner.adapter = adapter
+
+        view.errorMsg.setTextColor(Color.RED)
 
         view.nameInput.addTextChangedListener(object : TextWatcher {
 
@@ -86,6 +85,21 @@ class NewProjectDialog : DialogFragment() {
                 okButton.isEnabled = !s.isEmpty()
             }
         })
+    }
+
+
+
+
+    /**
+     *
+     * Fragment override fun
+     *
+     */
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            options = it.getStringArray(OPTIONS)
+        }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -132,6 +146,11 @@ class NewProjectDialog : DialogFragment() {
     }
 
 
+    /**
+     *
+     * To create instances
+     *
+     */
     companion object {
         @JvmStatic
         fun newInstance(options: Array<String>) = NewProjectDialog().apply {
