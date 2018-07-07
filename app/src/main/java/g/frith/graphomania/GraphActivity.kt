@@ -1,5 +1,6 @@
 package g.frith.graphomania
 
+import android.util.Log
 import org.json.JSONObject
 
 
@@ -82,10 +83,10 @@ class GraphActivity : AbstractGraphActivity() {
             val i = edgeJson.getInt("from")
             val j = edgeJson.getInt("to")
 
-            edges.add(GraphEdge(
+            GraphEdge(
                     nodes[i], nodes[j],
                     edgeJson.getDouble("curve").toFloat()
-            ))
+            )
         }
     }
 
@@ -95,25 +96,29 @@ class GraphActivity : AbstractGraphActivity() {
     }
 
     override fun createEdge(firstNode: Node, node: Node) {
-        edges.add(GraphEdge(firstNode, node, EDGE_CURVE))
+
+        val found = firstNode.edges.find { it.to === node } ?:
+                    node.edges.find { it.to === firstNode }
+
+        if ( found === null ) {
+            GraphEdge(firstNode, node, EDGE_CURVE)
+        }
+
         graphInvalidate()
     }
 
 
     override fun removeNode(node: Node) {
         nodes.remove(node)
-        edges.removeAll { it.from === node }
-        edges.filter { it.to === node }
-             .forEach {
-                 (it.to as GraphNode).edgesTo.remove(it)
+        for ( edge in node.edges ) {
+            (edge.to as GraphNode).edgesTo.remove(edge)
         }
-        edges.removeAll { it.to === node }
         graphInvalidate()
     }
 
     override fun removeEdge(edge: Edge) {
-        edges.remove(edge)
         edge.from.edges.remove(edge)
+        (edge.to as GraphNode).edgesTo.remove(edge)
         graphInvalidate()
     }
 

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.app.AlertDialog
+import java.io.File
 import java.util.regex.Pattern
 
 

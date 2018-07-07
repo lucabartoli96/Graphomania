@@ -63,25 +63,12 @@ abstract class AbstractLoopedGraphActivity : AbstractGraphActivity() {
     }
 
 
-    /**
-     *
-     * loops completes graph data structure
-     *
-     */
-    protected val loops = mutableListOf<Loop>()
-
-
 
     /**
      *
      * Extension of base class Abstract Graph, to include loops
      *
      */
-    override fun getComponentIterable(): Iterable<GraphComponent> {
-        return super.getComponentIterable() union loops
-    }
-
-
     override fun deselectAll() {
         super.deselectAll()
         Loop.selected = null
@@ -94,18 +81,34 @@ abstract class AbstractLoopedGraphActivity : AbstractGraphActivity() {
 
     override fun drawComponents(canvas: Canvas) {
         super.drawComponents(canvas)
-
-        for ( loop in loops ) {
-            loop.draw(canvas)
+        for ( node in nodes ) {
+            (node as LoopedNode).loop?.draw(canvas)
         }
     }
 
 
     /**
-     *  Retrieve loops when clicked
+     *
+     * Retrieve components when clicked extended to loops
+     *
      */
+    override fun getClickedComponent(x: Float, y: Float): GraphComponent? {
+        return super.getClickedComponent(x, y) ?: getClickedLoop(x, y)
+    }
+
+
+    protected fun getClickedLoop(x: Float, y: Float): Loop? {
+        for ( node in nodes ) {
+            val loop = (node as LoopedNode).loop
+            if ( loop !== null && loop.contains(x, y) ) {
+                return loop
+            }
+        }
+        return null
+    }
+
     protected fun getClickedLoop(e: MotionEvent): Loop? {
-        return loops.find { it.contains(e.x, e.y) }
+        return getClickedLoop(e.x, e.y)
     }
 
 

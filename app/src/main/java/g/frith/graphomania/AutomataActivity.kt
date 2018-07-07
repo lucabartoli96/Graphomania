@@ -1,6 +1,7 @@
 package g.frith.graphomania
 
 import android.graphics.Canvas
+import android.util.Log
 import android.view.MotionEvent
 import org.json.JSONObject
 import java.util.*
@@ -72,8 +73,9 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
      * while symbolpicker is open
      *
      */
-    private var pendingEdge: Edge? = null
-    private var pendingLoop: Loop? = null
+    private data class PendingEdge(val from: Node, val to: Node)
+    private var pendingEdge: PendingEdge? = null
+    private var pendingLoopedNode: Node? = null
     private var modifyingEdge: AutomataEdge? = null
     private var modifyingLoop: AutomataLoop? = null
 
@@ -108,10 +110,6 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
         constructor(edge: Edge, symbols: List<Char>) :
                 this(edge.from, edge.to, edge.curve, symbols)
-
-        init {
-            from.edges.add(this)
-        }
 
         private var symbolsStr: String = joinToLabel(symbols.sorted())
 
@@ -191,7 +189,6 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
                 })
             }
 
-
             for ( j in node.edges.indices ) {
 
                 val edge = (node.edges[j] as AutomataEdge)
@@ -247,11 +244,11 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
                 symbols.add(symbolsJson.getString(sy)[0])
             }
 
-            edges.add(AutomataEdge(
+            AutomataEdge(
                     nodes[i], nodes[j],
                     edgeJson.getDouble("curve").toFloat(),
                     symbols
-            ))
+            )
         }
 
 
@@ -270,11 +267,11 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
                 symbols.add(symbolsJson.getString(sy)[0])
             }
 
-            loops.add(AutomataLoop(
+            (nodes[i] as LoopedNode).loop = AutomataLoop(
                     nodes[i],
                     loopJson.getDouble("angle").toFloat(),
                     symbols
-            ))
+            )
         }
 
     }
@@ -292,23 +289,19 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
 
     override fun createEdge(firstNode: Node, node: Node) {
-        val found = edges.find {
-            it.from === firstNode && it.to === node
-        }
+
+        val found = firstNode.edges.find { it.to === node }
 
         if ( found === null ) {
-            pendingEdge = Edge(firstNode, node, EDGE_CURVE)
+            pendingEdge = PendingEdge(firstNode, node)
             openSymbolPicker()
         }
     }
 
     override fun createLoop(node: Node) {
-        val found = loops.find {
-            it.node === node
-        }
 
-        if ( found === null ) {
-            pendingLoop = Loop(node, random.nextAngleDegrees())
+        if ( (node as LoopedNode).loop === null ) {
+            pendingLoopedNode = node
             openSymbolPicker()
         }
 
@@ -316,19 +309,18 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
     override fun removeNode(node: Node) {
         nodes.remove(node)
-        edges.removeAll { it.from === node || it.to === node }
-        loops.removeAll { it.node === node }
+        for ( from in nodes ) {
+            from.edges.removeAll {it.to === node}
+        }
         graphInvalidate()
     }
 
     override fun removeEdge(edge: Edge) {
-        edges.remove(edge)
         edge.from.edges.remove(edge)
         graphInvalidate()
     }
 
     override fun removeLoop(loop: Loop) {
-        loops.remove(loop)
         (loop.node as LoopedNode).loop = null
         graphInvalidate()
     }
@@ -348,17 +340,24 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
     override fun onSymbolsPicked(symbols: List<Char>) {
         val storePendingEdge = pendingEdge
-        val storePendingLoop = pendingLoop
+        val storePendingLoopedNode = pendingLoopedNode
         val storeModifyingEdge = modifyingEdge
         val storeModifyingLoop = modifyingLoop
 
         when {
             storePendingEdge !== null -> {
-                edges.add(AutomataEdge(storePendingEdge, symbols))
+                AutomataEdge(
+                        storePendingEdge.from,
+                        storePendingEdge.to,
+                        EDGE_CURVE, symbols
+                )
                 graphInvalidate()
             }
-            storePendingLoop !== null -> {
-                loops.add(AutomataLoop(storePendingLoop, symbols))
+            storePendingLoopedNode !== null -> {
+                AutomataLoop(
+                        storePendingLoopedNode,
+                        random.nextAngleDegrees(), symbols
+                )
                 graphInvalidate()
             }
             storeModifyingEdge !== null -> {
@@ -376,7 +375,7 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
     override fun onSymbolsCancel() {
         pendingEdge = null
-        pendingLoop = null
+        pendingLoopedNode = null
         modifyingEdge = null
         modifyingLoop = null
     }

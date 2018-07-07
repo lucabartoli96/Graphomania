@@ -350,6 +350,10 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             var selected: Edge? = null
         }
 
+        init {
+            from.edges.add(this)
+        }
+
 
         override fun select() {
             selected = this
@@ -364,8 +368,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         }
 
         override fun draw(canvas: Canvas) {
-            canvas.drawStraightEdge(
-                    from.x, from.y, to.x, to.y, getArcPaint(), NODE_RADIUS
+            canvas.drawCurveEdge(
+                    from.x, from.y, to.x, to.y, curve, NODE_RADIUS, getArcPaint()
             )
         }
 
@@ -396,10 +400,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      *
      * nodes and edges provide the base of the data structure
      * that stores the whole graph.
-     * TODO: Decidere se tenere o meno edges
      */
     protected val nodes = mutableListOf<Node>()
-    protected val edges = mutableListOf<Edge>()
 
 
 
@@ -408,10 +410,6 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      * Operations on the lists or selected items
      *
      */
-    protected open fun getComponentIterable(): Iterable<GraphComponent> {
-        return nodes union edges
-    }
-
     protected open fun deselectAll() {
         Node.selected = null
         Edge.selected = null
@@ -427,11 +425,12 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             node.draw(canvas)
         }
 
-        for ( edge in edges ) {
-            edge.draw(canvas)
+        for ( node in nodes ) {
+            for ( edge in node.edges ) {
+                edge.draw(canvas)
+            }
         }
     }
-
 
 
     /**
@@ -439,8 +438,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      * Functions to retrieve components when clicked
      *
      */
-    protected fun getClickedComponent(x: Float, y: Float): GraphComponent? {
-        return getComponentIterable().find { it.contains(x, y) }
+    protected open fun getClickedComponent(x: Float, y: Float): GraphComponent? {
+        return getClickedNode(x, y) ?: getClickedEdge(x, y)
     }
 
     protected fun getClickedNode(x: Float, y: Float): Node? {
@@ -448,7 +447,14 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     }
 
     protected fun getClickedEdge(x: Float, y: Float): Edge? {
-        return edges.find { it.contains(x, y) }
+        for ( node in nodes ) {
+            for ( edge in node.edges ) {
+                if ( edge.contains(x, y) ) {
+                    return edge
+                }
+            }
+        }
+        return null
     }
 
 

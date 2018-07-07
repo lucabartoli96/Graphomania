@@ -203,8 +203,8 @@ private fun Canvas.drawLoopMain(fromX: Float, fromY: Float, radius: Float, angle
 
 
 fun Canvas.drawStraightEdge(fromX: Float, fromY: Float, //from
-                                    toX: Float, toY: Float, //to
-                                    paint: Paint, offset: Float) { //other params
+                            toX: Float, toY: Float, //to
+                            paint: Paint, offset: Float) { //other params
     drawStraightEdgeMain(fromX, fromY, toX, toY, paint, offset)
 }
 
