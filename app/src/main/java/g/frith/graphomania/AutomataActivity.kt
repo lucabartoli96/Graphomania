@@ -2,7 +2,6 @@ package g.frith.graphomania
 
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
 import android.view.Menu
 import android.view.MotionEvent
 import org.json.JSONObject
@@ -90,17 +89,12 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
      * Procedures
      *
      */
-    val checkInput = Procedure {
+    val checkAutomata = Procedure {
 
         for ( i in nodes.indices ) {
-            if ( i > 0 ) {
-                (nodes[i-1] as AutomataNode).setDefaultNodePaint()
-            }
-            (nodes[i] as AutomataNode).setNodePaint(Color.RED)
+            val node = (nodes[i] as AutomataNode)
             reached("node")
         }
-        (nodes.last() as AutomataNode).setDefaultNodePaint()
-        reached("node")
 
     }.start {
         animationRunning = true
@@ -117,7 +111,7 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
             menu.add(getString(R.string.input_automata))
                     .setOnMenuItemClickListener {
                         if ( !animationRunning ) {
-                            checkInput()
+                            checkAutomata()
                         }
                         true
                     }
@@ -266,6 +260,7 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
         }
 
         val graphJson = JsonObj {
+            "start" To if ( nodes.isEmpty() ) -1 else nodes.indexOf(AutomataNode.start)
             "nodes" To nodesJson
             "edges" To edgesJson
             "loops" To loopsJson
@@ -289,6 +284,13 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
                     nodeJson.getDouble("y").toFloat(),
                     nodeJson.getBoolean("final")
             ))
+        }
+
+        if ( nodes.isEmpty() ) {
+            AutomataNode.start = null
+        } else {
+            val i = graph.getInt("start")
+            AutomataNode.start = nodes[i]
         }
 
         val edgesJson = graph.getJSONArray("edges")
