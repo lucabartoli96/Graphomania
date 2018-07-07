@@ -1,8 +1,8 @@
 package g.frith.graphomania
 
 import android.graphics.Canvas
-import android.os.Bundle
-import android.util.Log
+import android.graphics.Color
+import android.graphics.Paint
 import android.view.Menu
 import android.view.MotionEvent
 import org.json.JSONObject
@@ -16,6 +16,9 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
     companion object {
 
         const val EDGE_CURVE = 40f
+
+        const val START_ARROW_RADIUS = 30f
+        const val START_ARROW_ANGLE = 60f
 
 
         /**
@@ -87,12 +90,25 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
      * Procedures
      *
      */
-
     val checkInput = Procedure {
 
-        
+        for ( i in nodes.indices ) {
+            if ( i > 0 ) {
+                (nodes[i-1] as AutomataNode).setDefaultNodePaint()
+            }
+            (nodes[i] as AutomataNode).setNodePaint(Color.RED)
+            reached("node")
+        }
+        (nodes.last() as AutomataNode).setDefaultNodePaint()
+        reached("node")
 
-    }
+    }.start {
+        animationRunning = true
+    }.end {
+        animationRunning = false
+    }.put("node", {
+        graphInvalidate()
+    })
 
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -100,7 +116,9 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
             menu.add(getString(R.string.input_automata))
                     .setOnMenuItemClickListener {
-                        checkInput()
+                        if ( !animationRunning ) {
+                            checkInput()
+                        }
                         true
                     }
 
@@ -117,7 +135,16 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
      */
     private class AutomataNode(x: Float, y: Float, var final: Boolean) : LoopedNode(x, y) {
 
+        companion object {
+            var start: Node? = null
+        }
+
+        fun isStart(): Boolean {
+            return this === start
+        }
+
         override fun draw(canvas: Canvas) {
+
             if ( final ) {
 
                 canvas.drawCircle(x, y, NODE_RADIUS - 6, getNodePaint())
@@ -125,6 +152,13 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
             } else {
                 canvas.drawCircle(x, y, NODE_RADIUS, getNodePaint())
+            }
+
+            if ( isStart() ) {
+                canvas.drawArrowedStraightEdge(
+                        x - 2*NODE_RADIUS, y, x, y, getArcPaint(),  NODE_RADIUS,
+                        START_ARROW_RADIUS, START_ARROW_ANGLE, getArrowPaint()
+                )
             }
         }
 
@@ -314,6 +348,9 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
      */
     override fun createNode(x: Float, y: Float) {
         nodes.add(AutomataNode(x, y, false))
+        if ( nodes.size == 1 ) {
+            AutomataNode.start = nodes[0]
+        }
     }
 
 
@@ -338,9 +375,15 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
     override fun removeNode(node: Node) {
         nodes.remove(node)
+
         for ( from in nodes ) {
             from.edges.removeAll {it.to === node}
         }
+
+        if ( (node as AutomataNode).isStart() ) {
+            AutomataNode.start = if ( nodes.isEmpty() ) null else nodes[0]
+        }
+
         graphInvalidate()
     }
 
@@ -440,6 +483,9 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
             is AutomataLoop -> {
                 modifyingLoop = component
                 openSymbolPicker(component.symbols)
+            }
+            is AutomataNode -> {
+                AutomataNode.start = component
             }
         }
     }

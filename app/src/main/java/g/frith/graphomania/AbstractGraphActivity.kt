@@ -30,42 +30,55 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         const val ARROW_ANGLE = 30f
         const val ARROW_RADIUS = 30f
 
-        private val nodePaint: Paint = Paint()
-        private val selectedNodePaint = Paint()
 
-        init {
-            nodePaint.style = Paint.Style.STROKE
-            nodePaint.strokeWidth = 4f
-
-            selectedNodePaint.style = Paint.Style.STROKE
-            selectedNodePaint.strokeWidth = 4f
-            selectedNodePaint.color = Color.CYAN
+        private fun initNodePaint(paint: Paint) {
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 4f
         }
 
+        private fun initArcPaint(paint: Paint) {
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 3f
+        }
+
+        private fun initTextPaint(paint: Paint) {
+            paint.style = Paint.Style.FILL
+            paint.textSize = 30f
+        }
+
+        private fun initArrowPaint(paint: Paint) {
+            paint.style = Paint.Style.FILL_AND_STROKE
+        }
+
+        private fun setSelected(paint: Paint) {
+            paint.color = Color.CYAN
+        }
+
+
+        private val nodePaint: Paint = Paint()
+        private val selectedNodePaint = Paint()
         private val arcPaint = Paint()
         private val selectedArcPaint = Paint()
         private val textPaint = Paint()
-
-        init {
-            arcPaint.style = Paint.Style.STROKE
-            arcPaint.strokeWidth = 3f
-
-            selectedArcPaint.style = Paint.Style.STROKE
-            selectedArcPaint.strokeWidth = 3f
-            selectedArcPaint.color = Color.CYAN
-
-            textPaint.style = Paint.Style.FILL
-            textPaint.textSize = 30f
-        }
-
         private val arrowPaint = Paint()
         private val selectedArrowPaint = Paint()
 
         init {
-            arrowPaint.style = Paint.Style.FILL_AND_STROKE
+            initNodePaint(nodePaint)
 
-            selectedArrowPaint.style = Paint.Style.FILL_AND_STROKE
-            selectedArrowPaint.color = Color.CYAN
+            initNodePaint(selectedNodePaint)
+            setSelected(selectedNodePaint)
+
+            initArcPaint(arcPaint)
+
+            initArcPaint(selectedArcPaint)
+            setSelected(selectedArcPaint)
+
+            initTextPaint(textPaint)
+
+            initArrowPaint(arrowPaint)
+            initArrowPaint(selectedArrowPaint)
+            setSelected(selectedArrowPaint)
         }
 
     }
@@ -91,6 +104,17 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     private var saved = true
 
 
+    /**
+     *
+     * Animation-related stuff
+     *
+     */
+    protected var animationRunning = false
+
+    protected open fun drawAnimation(canvas: Canvas) {
+
+    }
+
     protected fun graphInvalidate() {
         graphView.postInvalidate()
         saved = false
@@ -102,6 +126,9 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             super.onDraw(canvas)
             if ( canvas !== null ) {
                 drawComponents(canvas)
+                if ( animationRunning ) {
+                    drawAnimation(canvas)
+                }
             }
         }
 
@@ -272,6 +299,12 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      */
     protected abstract class GraphComponent {
 
+
+        private var customNodePaint: Paint? = null
+        private var customArcPaint: Paint? = null
+        private var customArrowPaint: Paint? = null
+        private var customTextPaint: Paint? = null
+
         abstract fun select()
         abstract fun isSelected(): Boolean
         abstract fun update(fingerX: Float, fingerY: Float)
@@ -282,25 +315,86 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             update(e.x, e.y)
         }
 
+        fun setNodePaint(paint: Paint) {
+            customNodePaint = paint
+        }
+
+        fun setNodePaint(color: Int) {
+            val paint = Paint()
+            initNodePaint(paint)
+            paint.color = color
+            setNodePaint(paint)
+        }
+
+        fun setArcPaint(paint: Paint) {
+            customArcPaint = paint
+        }
+
+        fun setArcPaint(color: Int) {
+            val paint = Paint()
+            initArcPaint(paint)
+            paint.color = color
+            setArcPaint(paint)
+        }
+
+        fun setArrowPaint(paint: Paint) {
+            customArrowPaint = paint
+        }
+
+        fun setArrowPaint(color: Int) {
+            val paint = Paint()
+            initArrowPaint(paint)
+            paint.color = color
+            setArrowPaint(paint)
+        }
+
+        fun setTextPaint(paint: Paint) {
+            customTextPaint = paint
+        }
+
+        fun setTextPaint(color: Int) {
+            val paint = Paint()
+            initTextPaint(paint)
+            paint.color = color
+            setTextPaint(paint)
+        }
+
+        fun setDefaultNodePaint() {
+            customNodePaint = null
+        }
+
+        fun setDefaultArcPaint() {
+            customArcPaint = null
+        }
+
+        fun setDefaultArrowPaint() {
+            customNodePaint = null
+        }
+
+        fun setDefaultTextPaint() {
+            customTextPaint = null
+        }
+
         fun contains(e: MotionEvent): Boolean {
             return contains(e.x, e.y)
         }
 
         protected fun getNodePaint(): Paint {
-            return if( isSelected() ) selectedNodePaint else nodePaint
+            return customNodePaint ?: if( isSelected() ) selectedNodePaint else nodePaint
         }
 
 
         protected fun getArcPaint(): Paint {
-            return if ( isSelected() ) selectedArcPaint else arcPaint
+            return customArcPaint ?: if ( isSelected() ) selectedArcPaint else arcPaint
+        }
+
+
+        protected fun getArrowPaint(): Paint {
+            return customArrowPaint ?: if ( isSelected() ) selectedArrowPaint else arrowPaint
         }
 
         protected fun getTextPaint(): Paint {
-            return textPaint
-        }
-
-        protected fun getArrowPaint(): Paint {
-            return if ( isSelected() ) selectedArrowPaint else arrowPaint
+            return customTextPaint ?: textPaint
         }
 
     }
@@ -573,7 +667,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         graphView.setOnTouchListener {view, motionEvent ->
             gestures.onTouchEvent(motionEvent)
 
-            if (motionEvent != null ) {
+            if ( motionEvent != null && !animationRunning ) {
                 when( motionEvent.actionMasked ) {
                     MotionEvent.ACTION_DOWN -> firstPointerDown(motionEvent)
                     MotionEvent.ACTION_MOVE -> firstPointerMove(motionEvent)

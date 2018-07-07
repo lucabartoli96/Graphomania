@@ -210,10 +210,10 @@ fun Canvas.drawStraightEdge(fromX: Float, fromY: Float, //from
 
 
 fun Canvas.drawArrowedStraightEdge(fromX: Float, fromY: Float, //from
-                                           toX: Float, toY: Float, //to
-                                           paint: Paint, offset: Float, //other params
-                                           arrowRadius: Float, arrowAngle: Float,
-                                           arrowPaint: Paint) { //arrow params
+                                   toX: Float, toY: Float, //to
+                                   paint: Paint, offset: Float, //other params
+                                   arrowRadius: Float, arrowAngle: Float,
+                                   arrowPaint: Paint) { //arrow params
 
     drawStraightEdgeMain(fromX, fromY, toX, toY, paint, offset,
             arrowRadius, arrowAngle, arrowPaint)
