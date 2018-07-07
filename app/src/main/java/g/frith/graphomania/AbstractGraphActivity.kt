@@ -12,6 +12,9 @@ import android.view.*
 import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import android.util.Log
 import java.io.*
+import android.os.AsyncTask
+import android.widget.Toast
+import android.support.v7.app.AlertDialog
 
 
 abstract class AbstractGraphActivity : AppCompatActivity() {
@@ -85,9 +88,12 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      *
      */
     private lateinit var graphView: GraphView
+    private var saved = true
+
 
     protected fun graphInvalidate() {
         graphView.postInvalidate()
+        saved = false
     }
 
     private inner class GraphView(context: Context) : View(context) {
@@ -143,6 +149,22 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     }
 
 
+    override fun onBackPressed() {
+        if (!saved) {
+            AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.changes))
+                    .setMessage(getString(R.string.want_save))
+                    .setNegativeButton(getString(R.string.no), {_,_->
+                        super.onBackPressed()
+                    })
+                    .setPositiveButton(getString(R.string.yes),  {_,_->
+                        save()
+                        super.onBackPressed()
+                    }).create().show()
+        } else {
+            super.onBackPressed()
+        }
+    }
 
     /**
      * Json related functions
@@ -159,40 +181,88 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      */
     private fun load() {
 
-        try {
-            val inputStream = openFileInput(fileName(type, name))
+        IOTask {
 
-            if (inputStream != null) {
-                val inputStreamReader = InputStreamReader(inputStream)
-                val bufferedReader = BufferedReader(inputStreamReader)
+            try {
+                val inputStream = openFileInput(fileName(type, name))
 
-                val allText = bufferedReader.use(BufferedReader::readText)
+                if (inputStream != null) {
+                    val inputStreamReader = InputStreamReader(inputStream)
+                    val bufferedReader = BufferedReader(inputStreamReader)
 
-                parseJson(allText)
+                    val allText = bufferedReader.use(BufferedReader::readText)
 
-                inputStream.close()
+                    inputStream.close()
+                    allText
+                } else {
+                    ""
+                }
+            } catch (e: FileNotFoundException) {
+                Log.e("graph activity", "File not found: " + e.toString())
+                ""
+            } catch (e: IOException) {
+                Log.e("graph activity", "Can not read file: " + e.toString())
+                ""
             }
-        } catch (e: FileNotFoundException) {
-            Log.e("graph activity", "File not found: " + e.toString())
-        } catch (e: IOException) {
-            Log.e("graph activity", "Can not read file: " + e.toString())
+        }.post {
+            if ( !it.isEmpty() ) {
+                parseJson(it)
+            }
         }
+
 
     }
 
     private fun save() {
 
-        try {
-            val file = openFileOutput(fileName(type, name),  Context.MODE_PRIVATE)
-            val outputStreamWriter = OutputStreamWriter(file)
-            outputStreamWriter.write(getJson())
-            outputStreamWriter.close()
-        } catch (e: IOException) {
-            Log.e("Exception", "File write failed: " + e.toString())
+        IOTask {
+            saved = try {
+                val file = openFileOutput(fileName(type, name),  Context.MODE_PRIVATE)
+                val outputStreamWriter = OutputStreamWriter(file)
+                outputStreamWriter.write(getJson())
+                outputStreamWriter.close()
+                true
+            } catch (e: IOException) {
+                Log.e("Exception", "File write failed: " + e.toString())
+                false
+            }
+
+            saved
+
+        }.post {
+            val id = if (it) R.string.save_success else  R.string.save_fail
+            val text = getString(id)
+            val toast = Toast.makeText(applicationContext, text, Toast.LENGTH_SHORT)
+            toast.show()
         }
+
 
     }
 
+    private class IOTask<T>(val task: ()->T) : AsyncTask<Void, Void, T>() {
+
+        private var postCallback: ((T)->Unit)? = null
+
+        init {
+            execute()
+        }
+
+        fun post(callback: (T)->Unit) {
+            postCallback = callback
+        }
+
+
+        override fun doInBackground(vararg p0: Void?): T {
+            return task()
+        }
+
+        override fun onPostExecute(result: T?) {
+            super.onPostExecute(result)
+            if ( result !== null ) {
+                postCallback?.invoke(result)
+            }
+        }
+    }
 
 
     /**

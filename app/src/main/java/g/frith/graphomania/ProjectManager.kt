@@ -81,8 +81,6 @@ class NewProjectDialog : DialogFragment() {
                         okButton.isEnabled = true
                     }
                 }
-
-                okButton.isEnabled = !s.isEmpty()
             }
         })
     }

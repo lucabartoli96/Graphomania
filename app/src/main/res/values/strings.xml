@@ -16,4 +16,12 @@
     <string name="dont_match">Invalid name (alphanumeric characters only)</string>
     <string name="name_exists">Name already exists</string>
 
+    <string name="save_success">Project saved</string>
+    <string name="save_fail">Something\'s gone wrong</string>
+
+    <string name="changes">You have made some changes.</string>
+    <string name="want_save">Would you like to save before exiting?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
 </resources>

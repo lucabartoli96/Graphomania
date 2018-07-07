@@ -1,7 +1,5 @@
 package g.frith.graphomania
 
-import android.support.v7.app.AppCompatActivity
-import android.os.Bundle
 
 class GraphActivity : AbstractGraphActivity() {
 
@@ -10,7 +8,7 @@ class GraphActivity : AbstractGraphActivity() {
     }
 
     override val type = "graph"
-    
+
 
     override fun getJson(): String {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
