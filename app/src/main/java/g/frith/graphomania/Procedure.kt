@@ -3,7 +3,7 @@ package g.frith.graphomania
 
 class Procedure(val runnable: Procedure.()->Unit) {
 
-    private val checkPoints = mutableMapOf<String, ()->Unit>()
+    private val checkPoints = mutableMapOf<String, Pair<()->Unit, Long>>()
 
     private var startAction: (()->Unit)? = null
     private var endAction: (()->Unit)? = null
@@ -19,8 +19,8 @@ class Procedure(val runnable: Procedure.()->Unit) {
         return this
     }
 
-    fun put(checkPoint: String, action: ()->Unit): Procedure {
-        checkPoints.put(checkPoint, action)
+    fun put(checkPoint: String, action: ()->Unit, time: Long = 500): Procedure {
+        checkPoints[checkPoint] = Pair(action, time)
         return this
     }
 
@@ -29,9 +29,9 @@ class Procedure(val runnable: Procedure.()->Unit) {
         return this
     }
 
-    fun reached(checkPoint: String) {
-        checkPoints[checkPoint]?.invoke()
-        Thread.sleep(500)
+    fun reached(checkPoint: String, time: Long = 500) {
+        checkPoints[checkPoint]?.first?.invoke()
+        Thread.sleep(checkPoints[checkPoint]?.second ?: time)
     }
 
     operator fun invoke() {

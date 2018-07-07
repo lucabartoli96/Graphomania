@@ -368,7 +368,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         }
 
         fun setDefaultArrowPaint() {
-            customNodePaint = null
+            customArrowPaint = null
         }
 
         fun setDefaultTextPaint() {

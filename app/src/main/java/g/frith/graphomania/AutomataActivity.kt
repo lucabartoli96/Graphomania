@@ -93,8 +93,21 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
         for ( i in nodes.indices ) {
             val node = (nodes[i] as AutomataNode)
+            node.setNodePaint(Color.RED)
             reached("node")
+            for ( edge in node.edges ) {
+                edge.setArcPaint(Color.YELLOW)
+                edge.setArrowPaint(Color.YELLOW)
+                edge.setTextPaint(Color.YELLOW)
+                reached("edge")
+                edge.setDefaultArcPaint()
+                edge.setDefaultArrowPaint()
+                edge.setDefaultTextPaint()
+            }
+            reached("edge")
+            node.setDefaultNodePaint()
         }
+        reached("node")
 
     }.start {
         animationRunning = true
@@ -102,7 +115,9 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
         animationRunning = false
     }.put("node", {
         graphInvalidate()
-    })
+    }, 500).put("edge", {
+        graphInvalidate()
+    }, 500)
 
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
