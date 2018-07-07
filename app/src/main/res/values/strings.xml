@@ -24,4 +24,6 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
 
+    <string name="input_automata">Check input</string>
+
 </resources>

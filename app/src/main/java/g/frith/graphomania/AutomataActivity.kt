@@ -1,7 +1,9 @@
 package g.frith.graphomania
 
 import android.graphics.Canvas
+import android.os.Bundle
 import android.util.Log
+import android.view.Menu
 import android.view.MotionEvent
 import org.json.JSONObject
 import java.util.*
@@ -79,6 +81,33 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
     private var modifyingEdge: AutomataEdge? = null
     private var modifyingLoop: AutomataLoop? = null
 
+
+    /**
+     *
+     * Procedures
+     *
+     */
+
+    val checkInput = Procedure {
+
+        
+
+    }
+
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        if ( super.onCreateOptionsMenu(menu) ) {
+
+            menu.add(getString(R.string.input_automata))
+                    .setOnMenuItemClickListener {
+                        checkInput()
+                        true
+                    }
+
+            return true
+        }
+        return false
+    }
 
 
     /**
