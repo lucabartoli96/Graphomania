@@ -110,9 +110,14 @@ class GraphActivity : AbstractGraphActivity() {
 
     override fun removeNode(node: Node) {
         nodes.remove(node)
+
         for ( edge in node.edges ) {
             (edge.to as GraphNode).edgesTo.remove(edge)
         }
+        for ( edge in (node as GraphNode).edgesTo ) {
+            edge.from.edges.remove(edge)
+        }
+
         graphInvalidate()
     }
 

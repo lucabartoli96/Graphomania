@@ -376,8 +376,13 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         override fun contains(fingerX: Float, fingerY: Float): Boolean {
 
             return if ( curve == 0f ) {
+                val betweenX = fingerX in Math.min(from.x, to.x)..Math.max(from.x, to.x)
+                val betweenY = fingerY in Math.min(from.y, to.y)..Math.max(from.y, to.y)
                 val dist = getDistanceToLine(fingerX, fingerY, from.x, from.y, to.x, to.y)
-                dist in 0f..2* ENLARGE_TOUCH
+                val inEdge = dist in 0f..2* ENLARGE_TOUCH
+
+                betweenX && betweenY && inEdge
+
             } else {
                 val radius = findRadius(from.x, from.y, to.x, to.y, curve)
                 val center = getCenter(from.x, from.y, to.x, to.y, radius)
