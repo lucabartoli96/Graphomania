@@ -14,7 +14,8 @@ class MainActivity : AppCompatActivity(), ProjecManager {
     private val filePattern = Pattern.compile("^([a-z]+)_(\\w+).json$")
 
     private val types = mapOf(
-            "automata" to AutomataActivity::class.java
+            "automata" to AutomataActivity::class.java,
+            "graph" to GraphActivity::class.java
     )
 
     override fun launchProject(type: String, name: String) {

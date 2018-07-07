@@ -370,16 +370,23 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         }
 
         override fun contains(fingerX: Float, fingerY: Float): Boolean {
-            val radius = findRadius(from.x, from.y, to.x, to.y, curve)
-            val center = getCenter(from.x, from.y, to.x, to.y, radius)
-            val distance = getDistance(center.x, center.y, fingerX, fingerY)
-            val fromCurve = Math.abs(distance - Math.abs(radius))
 
-            val diffSides = isAboveLine(center.x, center.y, from.x, from.y, to.x, to.y) !=
-                    isAboveLine(fingerX, fingerY, from.x, from.y, to.x, to.y)
-            val inEdge = fromCurve in 0f..2*ENLARGE_TOUCH
+            return if ( curve == 0f ) {
+                val dist = getDistanceToLine(fingerX, fingerY, from.x, from.y, to.x, to.y)
+                dist in 0f..2* ENLARGE_TOUCH
+            } else {
+                val radius = findRadius(from.x, from.y, to.x, to.y, curve)
+                val center = getCenter(from.x, from.y, to.x, to.y, radius)
+                val distance = getDistance(center.x, center.y, fingerX, fingerY)
+                val fromCurve = Math.abs(distance - Math.abs(radius))
 
-            return diffSides && inEdge
+                val diffSides = isAboveLine(center.x, center.y, from.x, from.y, to.x, to.y) !=
+                        isAboveLine(fingerX, fingerY, from.x, from.y, to.x, to.y)
+                val inEdge = fromCurve in 0f..2*ENLARGE_TOUCH
+
+                diffSides && inEdge
+            }
+
         }
 
     }
@@ -389,7 +396,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      *
      * nodes and edges provide the base of the data structure
      * that stores the whole graph.
-     *
+     * TODO: Decidere se tenere o meno edges
      */
     protected val nodes = mutableListOf<Node>()
     protected val edges = mutableListOf<Edge>()

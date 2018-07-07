@@ -206,8 +206,6 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
         }
 
         val graphJson = JsonObj {
-            "type" To "automata"
-            "name" To "EvenCs"
             "nodes" To nodesJson
             "edges" To edgesJson
             "loops" To loopsJson
@@ -318,7 +316,7 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
     override fun removeNode(node: Node) {
         nodes.remove(node)
-        edges.removeAll { it.from == node || it.to == node }
+        edges.removeAll { it.from === node || it.to === node }
         loops.removeAll { it.node === node }
         graphInvalidate()
     }
