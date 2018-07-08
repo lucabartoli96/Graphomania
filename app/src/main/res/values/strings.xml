@@ -25,5 +25,8 @@
     <string name="no">No</string>
 
     <string name="input_automata">Check input</string>
+    <string name="choose_input">Choose an input</string>
+    <string name="input_example">trytoacceptthisword</string>
+    <string name="wrong_input">Only a, b, …, z characters allowed</string>
 
 </resources>

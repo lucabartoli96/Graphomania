@@ -12,6 +12,8 @@ class GraphActivity : AbstractGraphActivity() {
 
     override val type = "graph"
 
+    override val menuItems = mapOf<Int, ()->Unit>()
+
     private class GraphNode(x: Float, y: Float): Node(x, y) {
         val edgesTo = mutableListOf<Edge>()
     }

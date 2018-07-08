@@ -2,14 +2,17 @@ package g.frith.graphomania
 
 import android.graphics.Canvas
 import android.graphics.Color
-import android.view.Menu
 import android.view.MotionEvent
 import org.json.JSONObject
 import java.util.*
+import android.util.Log
+
+
 
 
 class AutomataActivity : AbstractLoopedGraphActivity(),
-        SymbolPickerDialog.OnFragmentInteractionListener {
+        SymbolPickerDialog.OnFragmentInteractionListener,
+        InputDialog.OnFragmentInteractionListener {
 
 
     companion object {
@@ -120,21 +123,22 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
     }, 500)
 
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        if ( super.onCreateOptionsMenu(menu) ) {
-
-            menu.add(getString(R.string.input_automata))
-                    .setOnMenuItemClickListener {
-                        if ( !animationRunning ) {
-                            checkAutomata()
-                        }
-                        true
-                    }
-
-            return true
-        }
-        return false
+    override fun onInputChosen(string: String) {
+        Log.d("Automata", string)
+        checkAutomata()
     }
+
+
+    override val menuItems = mapOf<Int, ()->Unit>(
+
+            R.string.input_automata to {
+                Log.d("menuItems", "Calls")
+                val ft = supportFragmentManager.beginTransaction()
+                InputDialog.newInstance().show(ft, "InputDialog")
+                Unit
+            }
+
+    )
 
 
     /**
@@ -431,7 +435,7 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
         }
 
         val ft =  supportFragmentManager.beginTransaction()
-        SymbolPickerDialog.newInstance(taken, symbols).show(ft, "SymbolPicker")
+        SymbolPickerDialog.newInstance(taken, symbols).show(ft, "SymbolsPicker")
     }
 
     override fun onSymbolsPicked(symbols: List<Char>) {
@@ -474,6 +478,9 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
         pendingLoopedNode = null
         modifyingEdge = null
         modifyingLoop = null
+        val fragment = supportFragmentManager.findFragmentByTag("SymbolsPicker")
+        if(fragment !== null)
+            supportFragmentManager.beginTransaction().remove(fragment).commit()
     }
 
 

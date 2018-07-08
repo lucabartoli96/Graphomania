@@ -21,7 +21,7 @@ class SymbolPickerDialog : DialogFragment() {
 
     private var okButton: Button? = null
 
-    private lateinit var disabled: CharArray
+    private var disabled = mutableSetOf<Char>()
     private var symbols = mutableSetOf<Char>()
 
     private var listener: OnFragmentInteractionListener? = null
@@ -30,8 +30,8 @@ class SymbolPickerDialog : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            disabled = it.getCharArray(DISABLED)
-            symbols.addAll(it.getCharArray(SELECTED).toMutableList())
+            disabled.addAll(it.getCharArray(DISABLED).toMutableSet())
+            symbols.addAll(it.getCharArray(SELECTED).toMutableSet())
         }
     }
 

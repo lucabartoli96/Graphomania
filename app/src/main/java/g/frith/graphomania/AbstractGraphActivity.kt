@@ -115,6 +115,15 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     }
 
+
+    /**
+     *
+     * Menu items, to override in subclasses
+     *
+     */
+    protected abstract val menuItems: Map<Int, ()->Unit>
+
+
     protected fun graphInvalidate() {
         graphView.postInvalidate()
         saved = false
@@ -162,6 +171,16 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.graph_toolbar, menu)
         supportActionBar?.title = name
+
+        for( key in menuItems.keys ) {
+            menu.add(getString(key)).setOnMenuItemClickListener {
+                if ( !animationRunning ) {
+                    menuItems[key]?.invoke()
+                }
+                true
+            }
+        }
+
         return super.onCreateOptionsMenu(menu)
     }
 
