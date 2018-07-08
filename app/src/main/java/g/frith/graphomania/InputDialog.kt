@@ -107,6 +107,6 @@ class InputDialog : DialogFragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance() = SymbolPickerDialog()
+        fun newInstance() = InputDialog()
     }
 }
