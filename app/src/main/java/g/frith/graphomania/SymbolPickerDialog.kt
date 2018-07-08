@@ -13,21 +13,25 @@ import android.widget.ToggleButton
 import kotlinx.android.synthetic.main.fragment_symbol_picker_dialog.view.*
 
 
-private const val SYMBOLS = "symbols"
+private const val SELECTED = "selected"
+private const val DISABLED = "disabled"
 
 
 class SymbolPickerDialog : DialogFragment() {
 
     private var okButton: Button? = null
 
+    private lateinit var disabled: CharArray
     private var symbols = mutableSetOf<Char>()
 
     private var listener: OnFragmentInteractionListener? = null
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            symbols.addAll(it.getCharArray(SYMBOLS).toMutableList())
+            disabled = it.getCharArray(DISABLED)
+            symbols.addAll(it.getCharArray(SELECTED).toMutableList())
         }
     }
 
@@ -49,12 +53,20 @@ class SymbolPickerDialog : DialogFragment() {
         button.textOn = symbol.toString()
         button.layoutParams = LinearLayout.LayoutParams(100, 100)
         button.typeface = Typeface.DEFAULT
-        if ( symbol in symbols ) {
-            button.isChecked = true
-            button.setBackgroundColor(Color.LTGRAY)
-        } else {
-            button.setBackgroundColor(Color.TRANSPARENT)
+
+        when ( symbol ) {
+            in symbols -> {
+                button.isChecked = true
+                button.setBackgroundColor(Color.LTGRAY)
+            }
+            in disabled -> {
+                button.isEnabled = false
+            }
+            else -> {
+                button.setBackgroundColor(Color.TRANSPARENT)
+            }
         }
+
         return button
     }
 
@@ -154,12 +166,16 @@ class SymbolPickerDialog : DialogFragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance(symbols: List<Char>? = null) =
+        fun newInstance(disabled: List<Char>, selected: List<Char>? = null) =
                 SymbolPickerDialog().apply {
                     arguments = Bundle().apply {
                         this.putCharArray(
-                                SYMBOLS,
-                                symbols?.toCharArray() ?: CharArray(0)
+                                DISABLED,
+                                disabled.toCharArray()
+                        )
+                        this.putCharArray(
+                                SELECTED,
+                                selected?.toCharArray() ?: CharArray(0)
                         )
                     }
                 }

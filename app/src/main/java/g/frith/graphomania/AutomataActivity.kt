@@ -377,7 +377,7 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
         if ( found === null ) {
             pendingEdge = PendingEdge(firstNode, node)
-            openSymbolPicker()
+            openSymbolPicker(firstNode)
         }
     }
 
@@ -385,7 +385,7 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
         if ( (node as LoopedNode).loop === null ) {
             pendingLoopedNode = node
-            openSymbolPicker()
+            openSymbolPicker(node)
         }
 
     }
@@ -422,9 +422,16 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
      * Symbol picker related functions
      *
      */
-    private fun openSymbolPicker( symbols: List<Char>? = null ) {
+    private fun openSymbolPicker( node: Node, symbols: List<Char>? = null ) {
+
+        val taken = mutableListOf<Char>()
+
+        for ( edge in node.edges ) {
+            taken.addAll((edge as AutomataEdge).symbols)
+        }
+
         val ft =  supportFragmentManager.beginTransaction()
-        SymbolPickerDialog.newInstance(symbols).show(ft, "SymbolPicker")
+        SymbolPickerDialog.newInstance(taken, symbols).show(ft, "SymbolPicker")
     }
 
     override fun onSymbolsPicked(symbols: List<Char>) {
@@ -495,11 +502,11 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
         when ( component ) {
             is AutomataEdge -> {
                 modifyingEdge = component
-                openSymbolPicker(component.symbols)
+                openSymbolPicker((component as Edge).from, component.symbols)
             }
             is AutomataLoop -> {
                 modifyingLoop = component
-                openSymbolPicker(component.symbols)
+                openSymbolPicker((component as Loop).node, component.symbols)
             }
             is AutomataNode -> {
                 AutomataNode.start = component
