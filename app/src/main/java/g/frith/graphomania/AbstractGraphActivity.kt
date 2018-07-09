@@ -196,17 +196,23 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
 
     override fun onBackPressed() {
+
         if (!saved) {
-            AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.changes))
-                    .setMessage(getString(R.string.want_save))
-                    .setNegativeButton(getString(R.string.no), {_,_->
-                        super.onBackPressed()
-                    })
-                    .setPositiveButton(getString(R.string.yes),  {_,_->
-                        save()
-                        super.onBackPressed()
-                    }).create().show()
+
+            alert(R.string.changes, R.string.want_save ) {
+
+                positiveButton(R.string.yes) {
+                    Log.d("pos", "Call")
+                    save()
+                    super.onBackPressed()
+                }
+
+                negativeButton(R.string.no) {
+                    Log.d("neg", "Call")
+                    super.onBackPressed()
+                }
+            }.show()
+
         } else {
             super.onBackPressed()
         }

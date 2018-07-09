@@ -5,7 +5,8 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
-import android.support.v7.app.AlertDialog
+import android.view.View
+import kotlinx.android.synthetic.main.fragment_new_project.view.*
 import java.io.File
 import java.util.regex.Pattern
 
@@ -13,6 +14,8 @@ import java.util.regex.Pattern
 class MainActivity : AppCompatActivity(), ProjecManager {
 
     private val filePattern = Pattern.compile("^([a-z]+)_(\\w+).json$")
+    private val namePattern = Regex("^\\w+$")
+    private val fileName = { type: String, name: String -> "${type}_$name.json" }
 
     private val types = mapOf(
             "automata" to AutomataActivity::class.java,
@@ -37,41 +40,83 @@ class MainActivity : AppCompatActivity(), ProjecManager {
 
 
     private fun showNewProjectDialog() {
-        val ft =  supportFragmentManager.beginTransaction()
-        NewProjectDialog.newInstance(types.keys.toTypedArray())
-                .show(ft, "New Project")
+        alert ("New Project",
+                "Pick a type and a name") {
+
+            onShow {
+                Log.d("new project", yesButton.toString())
+                yesButton?.isEnabled = false
+            }
+
+            view(R.layout.fragment_new_project) {
+                errorMsg.visibility = View.GONE
+                typeSpinner.drowDown(types.keys.toTypedArray())
+                nameInput.onTextChanged {
+                    errorMsg.visibility = View.GONE
+
+                    if (it.isEmpty()) {
+                        yesButton?.isEnabled = false
+                    } else if (!it.matches(namePattern)) {
+                        errorMsg.text = getString(R.string.dont_match)
+                        errorMsg.visibility = View.VISIBLE
+                        yesButton?.isEnabled = false
+                    } else {
+                        val exists = File(filesDir, fileName(
+                                typeSpinner.selectedItem.toString(),
+                                it.toString()
+                        )).exists()
+
+                        if (exists) {
+                            errorMsg.text = getString(R.string.name_exists)
+                            errorMsg.visibility = View.VISIBLE
+                            yesButton?.isEnabled = false
+                        } else {
+                            yesButton?.isEnabled = true
+                        }
+                    }
+                }
+
+                positiveButton(R.string.ok, {
+                    launchProject(
+                            typeSpinner.selectedItem.toString(),
+                            nameInput.text.toString()
+                    )
+                })
+
+                negativeButton(R.string.cancel)
+            }
+
+        }.show()
     }
 
     private fun showLoadProjectDialog() {
 
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Choose a project")
-
         val typeList = mutableListOf<String>()
         val nameList = mutableListOf<String>()
 
-        val optionsList = mutableListOf<String>()
+        alert("Choose a project") {
 
-        for (file in fileList()) {
-            Log.d("Main", file)
-            val matcher = filePattern.matcher(file)
-            if (matcher.matches()) {
-                //PER CANCELLARE
-                //File(filesDir, file).delete()
-                val type = matcher.group(1)
-                val name = matcher.group(2)
+            list {
+                for (file in fileList()) {
+                    val matcher = filePattern.matcher(file)
+                    if (matcher.matches()) {
+                        //PER CANCELLARE
+                        //File(filesDir, file).delete()
+                        val type = matcher.group(1)
+                        val name = matcher.group(2)
 
-                typeList.add(type)
-                nameList.add(name)
+                        typeList.add(type)
+                        nameList.add(name)
 
-                optionsList.add("$name ($type)")
+                        add("$name ($type)")
+                    }
+                }
             }
-        }
 
-        builder.setItems(optionsList.toTypedArray(), { dialog, which ->
-            launchProject(typeList[which], nameList[which])
-        })
+            onItemSelected {
+                launchProject(typeList[it], nameList[it])
+            }
 
-        builder.create().show()
+        }.show()
     }
 }

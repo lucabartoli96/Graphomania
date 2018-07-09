@@ -22,14 +22,14 @@ class InputDialog : DialogFragment() {
 
     private fun initInput(view: View) {
 
-        view.errMsg.setTextColor(Color.RED)
-        view.errMsg.text = getString(R.string.wrong_input)
-        view.errMsg.visibility = View.GONE
+        view.errorMsg.setTextColor(Color.RED)
+        view.errorMsg.text = getString(R.string.wrong_input)
+        view.errorMsg.visibility = View.GONE
 
-        view.input.addTextChangedListener( object : TextWatcher {
+        view.nameInput.addTextChangedListener( object : TextWatcher {
 
             override fun onTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                view.errMsg.visibility = View.GONE
+                view.errorMsg.visibility = View.GONE
                 var isAdmitted = true
 
                 if ( s !== null ) {
@@ -41,7 +41,7 @@ class InputDialog : DialogFragment() {
                 }
 
                 if ( !isAdmitted ) {
-                    view.errMsg.visibility = View.VISIBLE
+                    view.errorMsg.visibility = View.VISIBLE
                 }
 
                 okButton?.isEnabled = !s.isNullOrEmpty() && isAdmitted
@@ -70,7 +70,7 @@ class InputDialog : DialogFragment() {
 
         builder.setView(view)
                 .setPositiveButton(R.string.ok,  { _, _ ->
-                    listener?.onInputChosen(view.input.text.toString())
+                    listener?.onInputChosen(view.nameInput.text.toString())
                 })
                 .setNegativeButton(R.string.cancel, { _, _ ->
                     dialog.cancel()

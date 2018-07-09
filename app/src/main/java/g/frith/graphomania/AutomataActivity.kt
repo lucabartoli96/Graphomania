@@ -4,17 +4,17 @@ import android.app.AlertDialog
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Typeface
 import android.view.MotionEvent
 import org.json.JSONObject
 import java.util.*
 import android.util.Log
+import android.view.View
+import android.widget.LinearLayout
+import kotlinx.android.synthetic.main.fragment_input_dialog.view.*
 
 
-
-
-class AutomataActivity : AbstractLoopedGraphActivity(),
-        SymbolPickerDialog.OnFragmentInteractionListener,
-        InputDialog.OnFragmentInteractionListener {
+class AutomataActivity : AbstractLoopedGraphActivity() {
 
 
     companion object {
@@ -134,10 +134,6 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
     }
 
-    override fun onInputChosen(string: String) {
-        checkAutomata(string)
-    }
-
     fun drawInput(canvas: Canvas) {
 
     }
@@ -152,13 +148,37 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
             R.string.input_automata to {
                 if ( nodes.isEmpty() ) {
-                    val builder = AlertDialog.Builder(this)
-                    builder.setMessage(getString(R.string.void_automata))
-                    builder.create().show()
+                    alert(R.string.sorry, R.string.empty_automata).show()
                 } else {
-                    val ft = supportFragmentManager.beginTransaction()
-                    InputDialog.newInstance().show(ft, "InputDialog")
-                    Unit
+//                    val ft = supportFragmentManager.beginTransaction()
+//                    InputDialog.newInstance().show(ft, "InputDialog")
+//                    Unit
+                    alert(R.string.choose_input) {
+
+                        view(R.layout.fragment_input_dialog) {
+                            errorMsg.visibility = View.GONE
+                            nameInput.onTextChanged {
+                                errorMsg.visibility = View.GONE
+                                var isAdmitted = true
+
+                                for ( c in it ) {
+                                    isAdmitted = isAdmitted && c in 'a'..'z'
+                                }
+
+                                if ( !isAdmitted ) {
+                                    errorMsg.visibility = View.VISIBLE
+                                }
+
+                                yesButton?.isEnabled = !it.isNullOrEmpty() && isAdmitted
+                            }
+                        }
+
+                        positiveButton(R.string.ok) {
+                            checkAutomata(nameInput.text.toString())
+                        }
+
+                        negativeButton(R.string.cancel)
+                    }.show()
                 }
             }
 
@@ -450,19 +470,78 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
      * Symbol picker related functions
      *
      */
-    private fun openSymbolPicker( node: Node, symbols: List<Char>? = null ) {
+    private fun openSymbolPicker( node: Node, symbolsList: List<Char> = listOf() ) {
 
-        val taken = mutableListOf<Char>()
+        val symbols = symbolsList.toMutableSet()
+        val disabled = mutableListOf<Char>()
 
         for ( edge in node.edges ) {
-            taken.addAll((edge as AutomataEdge).symbols)
+            disabled.addAll((edge as AutomataEdge).symbols)
         }
 
-        val ft =  supportFragmentManager.beginTransaction()
-        SymbolPickerDialog.newInstance(taken, symbols).show(ft, "SymbolsPicker")
+        alert("Pick symbols") {
+            view {
+                vertical {
+                    for (v in 'a'..'z' step 6) {
+
+                        horizontal {
+
+                            for (h in v..(if ('z' < v + 5) 'z' else v + 5)) {
+
+                                toggleButton {
+                                    text = h.toString()
+                                    textOn = h.toString()
+                                    textOff = h.toString()
+                                    layoutParams = LinearLayout.LayoutParams(100, 100)
+                                    typeface = Typeface.DEFAULT
+
+                                    when (h) {
+                                        in symbols -> {
+                                            isChecked = true
+                                            setBackgroundColor(Color.LTGRAY)
+                                        }
+                                        in disabled -> {
+                                            isEnabled = false
+                                        }
+                                        else -> {
+                                            setBackgroundColor(Color.TRANSPARENT)
+                                        }
+                                    }
+
+                                    setOnCheckedChangeListener { _, isChecked: Boolean ->
+
+                                        val symbol = text[0]
+
+                                        if (isChecked) {
+                                            symbols.add(symbol)
+                                        } else {
+                                            symbols.remove(symbol)
+                                        }
+
+                                        setBackgroundColor(if (isChecked) Color.LTGRAY else Color.TRANSPARENT)
+                                        yesButton?.isEnabled = !symbols.isEmpty()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            positiveButton(R.string.ok) {
+                onSymbolsPicked(symbols.toList())
+            }
+
+            negativeButton(R.string.cancel) {
+                onSymbolsCancel()
+            }
+
+        }.show()
+
+
     }
 
-    override fun onSymbolsPicked(symbols: List<Char>) {
+    fun onSymbolsPicked(symbols: List<Char>) {
         val storePendingEdge = pendingEdge
         val storePendingLoopedNode = pendingLoopedNode
         val storeModifyingEdge = modifyingEdge
@@ -497,7 +576,7 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
         onSymbolsCancel()
     }
 
-    override fun onSymbolsCancel() {
+    fun onSymbolsCancel() {
         pendingEdge = null
         pendingLoopedNode = null
         modifyingEdge = null
