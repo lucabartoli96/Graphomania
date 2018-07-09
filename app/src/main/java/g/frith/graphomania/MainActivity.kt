@@ -11,7 +11,7 @@ import java.io.File
 import java.util.regex.Pattern
 
 
-class MainActivity : AppCompatActivity(), ProjecManager {
+class MainActivity : AppCompatActivity() {
 
     private val filePattern = Pattern.compile("^([a-z]+)_(\\w+).json$")
     private val namePattern = Regex("^\\w+$")
@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity(), ProjecManager {
             "graph" to GraphActivity::class.java
     )
 
-    override fun launchProject(type: String, name: String) {
+    private fun launchProject(type: String, name: String) {
         val intent = Intent(this, types[type])
         intent.putExtra("name", name)
         startActivity(intent)
