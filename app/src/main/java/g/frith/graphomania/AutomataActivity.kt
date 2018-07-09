@@ -1,7 +1,9 @@
 package g.frith.graphomania
 
+import android.app.AlertDialog
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.view.MotionEvent
 import org.json.JSONObject
 import java.util.*
@@ -89,53 +91,75 @@ class AutomataActivity : AbstractLoopedGraphActivity(),
 
     /**
      *
+     * Animation-related fields
+     *
+     */
+    private var inputPaint = Paint()
+    private var input = StringBuilder()
+
+
+    /**
+     *
      * Procedures
      *
      */
     val checkAutomata = Procedure {
 
-        for ( i in nodes.indices ) {
-            val node = (nodes[i] as AutomataNode)
-            node.setNodePaint(Color.RED)
-            reached("node")
-            for ( edge in node.edges ) {
-                edge.setArcPaint(Color.YELLOW)
-                edge.setArrowPaint(Color.YELLOW)
-                edge.setTextPaint(Color.YELLOW)
-                reached("edge")
-                edge.setDefaultArcPaint()
-                edge.setDefaultArrowPaint()
-                edge.setDefaultTextPaint()
-            }
-            reached("edge")
-            node.setDefaultNodePaint()
+        start {
+            inputPaint.style = Paint.Style.FILL
+            inputPaint.textSize = 30f
+            animationRunning = true
         }
-        reached("node")
 
-    }.start {
-        animationRunning = true
-    }.end {
-        animationRunning = false
-    }.put("node", {
-        graphInvalidate()
-    }, 500).put("edge", {
-        graphInvalidate()
-    }, 500)
+        end {
+            animationRunning = false
+        }
 
+        procedure {
+
+            input = StringBuilder(it[0].toString())
+
+            var node = AutomataNode.start
+
+            checkPoint("node")
+        }
+
+        checkPoint("node", 300) {
+            graphInvalidate()
+        }
+
+        checkPoint("edge", 200) {
+            graphInvalidate()
+        }
+
+    }
 
     override fun onInputChosen(string: String) {
-        Log.d("Automata", string)
-        checkAutomata()
+        checkAutomata(string)
+    }
+
+    fun drawInput(canvas: Canvas) {
+
+    }
+
+
+    override fun drawAnimation(canvas: Canvas) {
+
     }
 
 
     override val menuItems = mapOf<Int, ()->Unit>(
 
             R.string.input_automata to {
-                Log.d("menuItems", "Calls")
-                val ft = supportFragmentManager.beginTransaction()
-                InputDialog.newInstance().show(ft, "InputDialog")
-                Unit
+                if ( nodes.isEmpty() ) {
+                    val builder = AlertDialog.Builder(this)
+                    builder.setMessage(getString(R.string.void_automata))
+                    builder.create().show()
+                } else {
+                    val ft = supportFragmentManager.beginTransaction()
+                    InputDialog.newInstance().show(ft, "InputDialog")
+                    Unit
+                }
             }
 
     )

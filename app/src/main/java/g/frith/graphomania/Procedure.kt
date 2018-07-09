@@ -1,13 +1,14 @@
 package g.frith.graphomania
 
 
-class Procedure(val runnable: Procedure.()->Unit) {
+class Procedure(val init: Procedure.()->Unit) {
 
     private val checkPoints = mutableMapOf<String, Pair<()->Unit, Long>>()
 
     private var startAction: (()->Unit)? = null
     private var endAction: (()->Unit)? = null
 
+    private lateinit var code: (Array<out Any>)->Unit
 
     fun start(action: () -> Unit): Procedure {
         startAction = action
@@ -19,9 +20,14 @@ class Procedure(val runnable: Procedure.()->Unit) {
         return this
     }
 
-    fun put(checkPoint: String, action: ()->Unit, time: Long = 500): Procedure {
+    fun checkPoint(checkPoint: String, time: Long = 500, action: ()->Unit): Procedure {
         checkPoints[checkPoint] = Pair(action, time)
         return this
+    }
+
+    fun checkPoint(checkPoint: String) {
+        checkPoints[checkPoint]?.first?.invoke()
+        Thread.sleep(checkPoints[checkPoint]?.second ?: 500)
     }
 
     fun remove(checkPoint: String): Procedure {
@@ -29,15 +35,20 @@ class Procedure(val runnable: Procedure.()->Unit) {
         return this
     }
 
-    fun reached(checkPoint: String, time: Long = 500) {
-        checkPoints[checkPoint]?.first?.invoke()
-        Thread.sleep(checkPoints[checkPoint]?.second ?: time)
+    fun procedure(p: ((Array<out Any>)->Unit)?) {
+        if ( p !== null ) {
+            code = p
+        }
     }
 
-    operator fun invoke() {
+    fun procedure(vararg args: Any) {
+        code.invoke(args)
+    }
+
+    operator fun invoke(vararg args: Any) {
         Thread {
             startAction?.invoke()
-            runnable()
+            code(args)
             endAction?.invoke()
         }.start()
     }

@@ -16,6 +16,8 @@
     <string name="dont_match">Invalid name (alphanumeric characters only)</string>
     <string name="name_exists">Name already exists</string>
 
+    <string name="void_automata">Automata in empty</string>
+
     <string name="save_success">Project saved</string>
     <string name="save_fail">Something\'s gone wrong</string>
 
