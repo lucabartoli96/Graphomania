@@ -1,7 +1,13 @@
 package g.frith.graphomania
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.Notification
+import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -13,6 +19,9 @@ import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import android.util.Log
 import java.io.*
 import android.os.AsyncTask
+import android.support.v4.app.ActivityCompat
+import android.support.v4.app.NotificationManagerCompat
+import android.support.v4.content.ContextCompat
 import android.widget.Toast
 import android.support.v7.app.AlertDialog
 
@@ -23,6 +32,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         private val fileName = {type: String, name: String -> "${type}_$name.json"}
 
+        const val ALBUM_NAME = "Graphomania"
+        const val WRITE_REQUEST_CODE = 1
 
         // Canvas-related constants (sizes and paints)
         const val NODE_RADIUS = 35f
@@ -83,6 +94,31 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     }
 
+    /**
+     *
+     * Write permission related stuff
+     *
+     */
+    private val writePermission: Boolean
+    get() {
+        val writePermission = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        return writePermission == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun askPermission() {
+
+        if (!writePermission) {
+
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                        WRITE_REQUEST_CODE)
+            }
+        }
+    }
 
 
     /**
@@ -129,14 +165,14 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         saved = false
     }
 
-    private inner class GraphView(context: Context) : SurfaceView(context){
+    private inner class GraphView(context: Context) : View(context){
 
         init {
             setBackgroundColor(Color.WHITE)
         }
 
-        override fun draw(canvas: Canvas?) {
-            super.draw(canvas)
+        override fun onDraw(canvas: Canvas?) {
+            super.onDraw(canvas)
             if ( canvas !== null ) {
                 drawComponents(canvas)
                 if ( animationRunning ) {
@@ -233,6 +269,10 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             deleteAlert.show()
             true
         }
+        R.id.download -> {
+            dowload()
+            true
+        }
         else -> false
     }
 
@@ -240,13 +280,23 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     override fun onBackPressed() {
 
         if (!saved) {
-
             saveAlert.show()
-
         } else {
             super.onBackPressed()
         }
     }
+
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<out String>,
+                                            grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if ( requestCode == WRITE_REQUEST_CODE &&
+             grantResults.isNotEmpty() &&
+             grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            dowload()
+        }
+    }
+
 
     /**
      * Json related functions
@@ -313,9 +363,9 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         }.post {
             val id = if (it) R.string.save_success else  R.string.save_fail
-            val text = getString(id)
-            val toast = Toast.makeText(applicationContext, text, Toast.LENGTH_SHORT)
-            toast.show()
+            Toast.makeText(applicationContext,
+                           getString(id),
+                           Toast.LENGTH_SHORT).show()
         }
 
 
@@ -326,12 +376,37 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         IOTask {
             File(filesDir, fileName(type, name)).delete()
         }.post {
-            val toast = Toast.makeText(applicationContext,
-                                       getString(R.string.delete_success),
-                                       Toast.LENGTH_SHORT)
-            toast.show()
+            Toast.makeText(applicationContext,
+                           getString(R.string.delete_success),
+                           Toast.LENGTH_SHORT).show()
         }
 
+    }
+
+    private fun dowload() {
+
+        if (!writePermission) {
+            askPermission()
+            return
+        } else {
+            IOTask {
+                val graphImage = graphView.getBitmap()
+                saveScreenshot(ALBUM_NAME, name, graphImage)
+                graphImage
+            }.post {
+                Toast.makeText(applicationContext,
+                        getString(R.string.download_success),
+                        Toast.LENGTH_SHORT).show()
+//                val built = Notification.Builder(this)
+//                        .setContentTitle(name)
+//                        .setSmallIcon(R.drawable.download)
+//                        .setLargeIcon(it)
+//                        .setStyle(Notification.BigPictureStyle()
+//                                .bigPicture(it))
+//                        .build()
+//                NotificationManagerCompat.from(this).notify(1, built)
+            }
+        }
     }
 
     private class IOTask<T>(val task: ()->T) : AsyncTask<Void, Void, T>() {

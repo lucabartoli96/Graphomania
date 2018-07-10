@@ -8,8 +8,6 @@ import android.support.annotation.LayoutRes
 import android.support.annotation.StringRes
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
-import android.text.Layout
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -178,7 +176,7 @@ class AlertDialogHelper(context: Context,
             }
         }
 
-        builder.setView(view)
+        dialog = builder.setView(view)
                 .setPositiveButton(yesButtonText, {_, _ ->
                     yesButtonFunc?.let {
                         view?.apply(it)

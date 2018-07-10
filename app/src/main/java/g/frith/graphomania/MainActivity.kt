@@ -1,5 +1,6 @@
 package g.frith.graphomania
 
+import android.content.AsyncQueryHandler
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -35,7 +36,6 @@ class MainActivity : AppCompatActivity() {
 
         newProject.setOnClickListener { showNewProjectDialog() }
         loadProject.setOnClickListener { showLoadProjectDialog() }
-
     }
 
 
