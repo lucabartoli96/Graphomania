@@ -129,10 +129,14 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         saved = false
     }
 
-    private inner class GraphView(context: Context) : View(context) {
+    private inner class GraphView(context: Context) : SurfaceView(context){
 
-        override fun onDraw(canvas: Canvas?) {
-            super.onDraw(canvas)
+        init {
+            setBackgroundColor(Color.WHITE)
+        }
+
+        override fun draw(canvas: Canvas?) {
+            super.draw(canvas)
             if ( canvas !== null ) {
                 drawComponents(canvas)
                 if ( animationRunning ) {
