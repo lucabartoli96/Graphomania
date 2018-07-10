@@ -148,6 +148,16 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     }
 
 
+    /**
+     *
+     * Alerts
+     *
+     */
+
+    private lateinit var saveAlert: AlertDialog
+    private lateinit var deleteAlert: AlertDialog
+
+
 
     /**
      *
@@ -158,6 +168,30 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_abstract_graph)
         setSupportActionBar(graphToolbar)
+
+
+        saveAlert = alert(R.string.changes, R.string.want_save ) {
+
+            positiveButton(R.string.yes) {
+                Log.d("pos", "Call")
+                save()
+                super.onBackPressed()
+            }
+
+            negativeButton(R.string.no) {
+                Log.d("neg", "Call")
+                super.onBackPressed()
+            }
+        }
+
+
+        deleteAlert = alert(R.string.delete_project, R.string.sure_delete) {
+            positiveButton(R.string.yes) {
+                delete()
+                super.onBackPressed()
+            }
+            negativeButton(R.string.no)
+        }
 
         graphView = GraphView(this)
         mainContainer.addView(graphView)
@@ -195,6 +229,10 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             save()
             true
         }
+        R.id.delete -> {
+            deleteAlert.show()
+            true
+        }
         else -> false
     }
 
@@ -203,19 +241,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         if (!saved) {
 
-            alert(R.string.changes, R.string.want_save ) {
-
-                positiveButton(R.string.yes) {
-                    Log.d("pos", "Call")
-                    save()
-                    super.onBackPressed()
-                }
-
-                negativeButton(R.string.no) {
-                    Log.d("neg", "Call")
-                    super.onBackPressed()
-                }
-            }.show()
+            saveAlert.show()
 
         } else {
             super.onBackPressed()
@@ -292,6 +318,19 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             toast.show()
         }
 
+
+    }
+
+    private fun delete() {
+
+        IOTask {
+            File(filesDir, fileName(type, name)).delete()
+        }.post {
+            val toast = Toast.makeText(applicationContext,
+                                       getString(R.string.delete_success),
+                                       Toast.LENGTH_SHORT)
+            toast.show()
+        }
 
     }
 
