@@ -397,14 +397,6 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
                 Toast.makeText(applicationContext,
                         getString(R.string.download_success),
                         Toast.LENGTH_SHORT).show()
-//                val built = Notification.Builder(this)
-//                        .setContentTitle(name)
-//                        .setSmallIcon(R.drawable.download)
-//                        .setLargeIcon(it)
-//                        .setStyle(Notification.BigPictureStyle()
-//                                .bigPicture(it))
-//                        .build()
-//                NotificationManagerCompat.from(this).notify(1, built)
             }
         }
     }
@@ -516,6 +508,24 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         fun setDefaultTextPaint() {
             customTextPaint = null
+        }
+
+        fun setEdgeColor(color: Int) {
+            setArcPaint(color)
+            setArrowPaint(color)
+            setTextPaint(color)
+        }
+
+        fun setNodeColor(color: Int) {
+            setArcPaint(color)
+            setNodePaint(color)
+        }
+
+        fun setDefaultPaint() {
+            setDefaultNodePaint()
+            setDefaultArcPaint()
+            setDefaultArrowPaint()
+            setDefaultTextPaint()
         }
 
         fun contains(e: MotionEvent): Boolean {

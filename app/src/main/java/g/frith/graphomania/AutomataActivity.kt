@@ -1,16 +1,15 @@
 package g.frith.graphomania
 
-import android.app.AlertDialog
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Typeface
+import android.graphics.*
 import android.view.MotionEvent
 import org.json.JSONObject
 import java.util.*
 import android.util.Log
 import android.view.View
+import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import kotlinx.android.synthetic.main.fragment_input_dialog.view.*
 
 
@@ -95,19 +94,28 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
      *
      */
     private var inputPaint = Paint()
-    private var input = StringBuilder()
+    private var inputRect = Rect()
+    private var input = ""
+    private var currentChar = -1
+    private var final = false
 
+    init {
+        inputPaint.style = Paint.Style.FILL
+        inputPaint.textSize = 40f
+    }
+
+    fun drawInput(canvas: Canvas) {
+        val text = EditText(this)
+    }
 
     /**
      *
      * Procedures
      *
      */
-    val checkAutomata = Procedure {
+    private val checkAutomata = Procedure {
 
         start {
-            inputPaint.style = Paint.Style.FILL
-            inputPaint.textSize = 30f
             animationRunning = true
         }
 
@@ -116,31 +124,80 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
         }
 
         procedure {
+            input = it[0].toString()
 
-            input = StringBuilder(it[0].toString())
+            var node = (AutomataNode.start as AutomataNode)
+            var usedEdge: GraphComponent? = null
 
-            var node = AutomataNode.start
+            for ( i in input.indices ) {
+
+                val c = input[i]
+
+                currentChar = i
+                final = node.final
+
+                usedEdge?.setEdgeColor(Color.YELLOW)
+                if ( usedEdge !== null ) checkPoint("edge")
+                usedEdge?.setDefaultPaint()
+
+                usedEdge = null
+
+                node.setNodeColor(Color.RED)
+                checkPoint("node")
+                node.setDefaultPaint()
+
+
+                val loop = node.loop as AutomataLoop?
+                if ( loop !== null && c in loop.symbols)  {
+                    usedEdge = loop
+                    continue
+                }
+
+                for ( edge in node.edges ) {
+                    if ( c in (edge as AutomataEdge).symbols ) {
+                        node = (edge.to as AutomataNode)
+                        usedEdge = edge
+                        break
+                    }
+                }
+
+                if ( usedEdge === null ) {
+                    break
+                }
+            }
+
+            currentChar = input.length
+
+            usedEdge?.setEdgeColor(Color.YELLOW)
+            if ( usedEdge !== null ) checkPoint("edge")
+            usedEdge?.setDefaultPaint()
+            node.setNodeColor(Color.RED)
+            checkPoint("node")
+            node.setDefaultPaint()
+            checkPoint("node")
+
+            input = if ( !node.final ||  usedEdge === null ) {
+                "Failed"
+            } else {
+                "Won"
+            }
 
             checkPoint("node")
+
         }
 
-        checkPoint("node", 300) {
+        checkPoint("node", 1000) {
             graphInvalidate()
         }
 
-        checkPoint("edge", 200) {
+        checkPoint("edge", 1000) {
             graphInvalidate()
         }
 
     }
-
-    fun drawInput(canvas: Canvas) {
-
-    }
-
 
     override fun drawAnimation(canvas: Canvas) {
-
+        drawInput(canvas)
     }
 
 
@@ -150,9 +207,6 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
                 if ( nodes.isEmpty() ) {
                     alert(R.string.sorry, R.string.empty_automata).show()
                 } else {
-//                    val ft = supportFragmentManager.beginTransaction()
-//                    InputDialog.newInstance().show(ft, "InputDialog")
-//                    Unit
                     alert(R.string.choose_input) {
 
                         view(R.layout.fragment_input_dialog) {
@@ -169,7 +223,7 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
                                     errorMsg.visibility = View.VISIBLE
                                 }
 
-                                yesButton?.isEnabled = !it.isNullOrEmpty() && isAdmitted
+                                yesButton?.isEnabled = it.isNotEmpty() && isAdmitted
                             }
                         }
 
@@ -477,6 +531,10 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
 
         for ( edge in node.edges ) {
             disabled.addAll((edge as AutomataEdge).symbols)
+        }
+
+        ((node as LoopedNode).loop as AutomataLoop?)?.let {
+            disabled.addAll(it.symbols)
         }
 
         alert("Pick symbols") {

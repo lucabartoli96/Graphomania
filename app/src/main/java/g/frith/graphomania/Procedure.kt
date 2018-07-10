@@ -1,7 +1,10 @@
 package g.frith.graphomania
 
+import android.os.Handler
+import android.os.Looper
 
-class Procedure(val init: Procedure.()->Unit) {
+
+class Procedure(init: Procedure.()->Unit) {
 
     private val checkPoints = mutableMapOf<String, Pair<()->Unit, Long>>()
 
@@ -10,19 +13,20 @@ class Procedure(val init: Procedure.()->Unit) {
 
     private lateinit var code: (Array<out Any>)->Unit
 
-    fun start(action: () -> Unit): Procedure {
+    init {
+        apply(init)
+    }
+
+    fun start(action: () -> Unit) {
         startAction = action
-        return this
     }
 
-    fun end(action: () -> Unit): Procedure {
+    fun end(action: () -> Unit) {
         endAction = action
-        return this
     }
 
-    fun checkPoint(checkPoint: String, time: Long = 500, action: ()->Unit): Procedure {
+    fun checkPoint(checkPoint: String, time: Long = 500, action: ()->Unit) {
         checkPoints[checkPoint] = Pair(action, time)
-        return this
     }
 
     fun checkPoint(checkPoint: String) {
@@ -30,9 +34,8 @@ class Procedure(val init: Procedure.()->Unit) {
         Thread.sleep(checkPoints[checkPoint]?.second ?: 500)
     }
 
-    fun remove(checkPoint: String): Procedure {
+    fun remove(checkPoint: String) {
         checkPoints.remove(checkPoint)
-        return this
     }
 
     fun procedure(p: ((Array<out Any>)->Unit)?) {
