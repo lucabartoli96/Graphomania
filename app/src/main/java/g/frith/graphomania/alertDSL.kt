@@ -41,6 +41,31 @@ fun Activity.alert(titleResource: Int = 0,
 
 }
 
+fun Activity.alert(title: CharSequence? = null,
+                   items: Collection<CharSequence>,
+                   func: (AlertDialogListHelper.() -> Unit)? = null): AlertDialog {
+
+    return if ( func !== null ) {
+        AlertDialogListHelper(this, title, items).apply(func)
+    } else {
+        AlertDialogListHelper(this, title, items)
+    }.create()
+
+}
+
+fun Activity.alert(titleResource: Int = 0,
+                   items: Collection<CharSequence>,
+                   func: (AlertDialogListHelper.() -> Unit)? = null): AlertDialog {
+    val title = if (titleResource == 0) null else getString(titleResource)
+
+    return if ( func !== null ) {
+        AlertDialogListHelper(this, title, items).apply(func)
+    } else {
+        AlertDialogListHelper(this, title, items)
+    }.create()
+
+}
+
 fun Fragment.alert(title: CharSequence? = null,
                    message: CharSequence? = null,
                    func: (AlertDialogHelper.() -> Unit)? = null): AlertDialog {
@@ -82,16 +107,12 @@ class AlertDialogHelper(context: Context,
     private var yesButtonFunc: (View.()->Unit)? = null
     private var noButtonFunc: (View.()->Unit)? = null
 
-    private var items: MutableList<String>? = null
-    private var itemSelected: ((Int)->Unit)? = null
-
     val yesButton: Button?
         get() = dialog?.getButton(Dialog.BUTTON_POSITIVE)
     val noButton: Button?
         get() = dialog?.getButton(Dialog.BUTTON_NEGATIVE)
     val neutralButton: Button?
         get() = dialog?.getButton(Dialog.BUTTON_NEUTRAL)
-
 
 
     init {
@@ -131,7 +152,6 @@ class AlertDialogHelper(context: Context,
     fun view(@LayoutRes layoutRes: Int, func: (View.() -> Unit)? = null) {
         when {
             view !== null -> throw Exception("View already set")
-            items !== null -> throw Exception("List already set")
             else -> {
                 view = LayoutInflater.from(ctx).inflate(layoutRes, null)
                 func?.let { view?.apply(it) }
@@ -142,71 +162,76 @@ class AlertDialogHelper(context: Context,
     fun view(func: () -> View) {
         when {
             view !== null -> throw Exception("View is already set, cannot set content twice")
-            items !== null -> throw Exception("List already set, cannot set content twice")
             else -> {
                 view = func()
             }
         }
     }
 
-    fun list(fill: MutableList<String>.()->Unit) {
-        when {
-            view !== null -> throw Exception("View already set, cannot set content twice")
-            items !== null -> throw Exception("List already set, cannot set content twice")
-            else -> {
-                items = mutableListOf()
-                items?.apply(fill)
-            }
-        }
-    }
-
-    fun onItemSelected(handler: (Int)->Unit) {
-        when {
-            view !== null -> throw Exception("No list is set")
-            items === null -> throw Exception("List not set yet")
-            else -> {
-                itemSelected = handler
-            }
-        }
-    }
 
     fun create(): AlertDialog {
 
-        val storeItems = items
-
-        dialog = if ( storeItems !== null ) {
-            Log.d("create", storeItems.toString())
-            builder.setItems(storeItems.toTypedArray(), {_, which ->
-                itemSelected?.invoke(which)
-            })
-        } else {
-
-            if( view == null ) {
-                view = LinearLayout(ctx)
-                view?.let {
-                    it.layoutParams = ViewGroup.LayoutParams(0, 0)
-                }
+        if( view == null ) {
+            view = LinearLayout(ctx)
+            view?.let {
+                it.layoutParams = ViewGroup.LayoutParams(0, 0)
             }
+        }
 
-            builder.setView(view)
-            builder
-                    .setPositiveButton(yesButtonText, {_, _ ->
-                        yesButtonFunc?.let {
-                            view?.apply(it)
-                        }
-                    })
-                    .setNegativeButton(noButtonText, {_, _ ->
-                        noButtonFunc?.let {
-                            view?.apply(it)
-                        }
-                    })
-        }.create()
+        builder.setView(view)
+                .setPositiveButton(yesButtonText, {_, _ ->
+                    yesButtonFunc?.let {
+                        view?.apply(it)
+                    }
+                })
+                .setNegativeButton(noButtonText, {_, _ ->
+                    noButtonFunc?.let {
+                        view?.apply(it)
+                    }
+                }).create()
 
         dialog?.setOnShowListener {
             dialogInit?.let { view?.apply(it) }
         }
 
         return dialog!!
+    }
+
+}
+
+
+class AlertDialogListHelper(context: Context,
+                            title: CharSequence?,
+                            items: Collection<CharSequence>) {
+
+    private val ctx = context
+    private val builder: AlertDialog.Builder = AlertDialog.Builder(context)
+
+    private var items: MutableList<CharSequence>? = items.toMutableList()
+    private var itemSelected: ((Int)->Unit)? = null
+
+    init {
+        builder.setTitle(title)
+    }
+
+    fun list(fill: MutableList<CharSequence>.()->Unit) {
+        items?.apply(fill)
+    }
+
+    fun onItemSelected(handler: (Int)->Unit) {
+        itemSelected = handler
+    }
+
+    fun create(): AlertDialog {
+        val storeItems = items
+
+        if ( storeItems !== null ) {
+            builder.setItems(storeItems.toTypedArray(), {_, which ->
+                itemSelected?.invoke(which)
+            })
+        }
+
+        return builder.create()
     }
 
 }

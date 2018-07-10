@@ -93,25 +93,24 @@ class MainActivity : AppCompatActivity() {
 
         val typeList = mutableListOf<String>()
         val nameList = mutableListOf<String>()
+        val list = mutableListOf<String>()
 
-        alert("Choose a project") {
+        for (file in fileList()) {
+            val matcher = filePattern.matcher(file)
+            if (matcher.matches()) {
+                //PER CANCELLARE
+                //File(filesDir, file).delete()
+                val type = matcher.group(1)
+                val name = matcher.group(2)
 
-            list {
-                for (file in fileList()) {
-                    val matcher = filePattern.matcher(file)
-                    if (matcher.matches()) {
-                        //PER CANCELLARE
-                        //File(filesDir, file).delete()
-                        val type = matcher.group(1)
-                        val name = matcher.group(2)
+                typeList.add(type)
+                nameList.add(name)
 
-                        typeList.add(type)
-                        nameList.add(name)
-
-                        add("$name ($type)")
-                    }
-                }
+                list.add("$name ($type)")
             }
+        }
+
+        alert(R.string.choose_project, list) {
 
             onItemSelected {
                 launchProject(typeList[it], nameList[it])
