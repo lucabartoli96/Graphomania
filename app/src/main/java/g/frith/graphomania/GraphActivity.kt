@@ -13,6 +13,7 @@ class GraphActivity : AbstractGraphActivity() {
         const val EDGE_CURVE = 0f
 
         //const val DFS = "dfs"
+        //const val BFS = "bfs"
     }
 
     override val type = "graph"
@@ -358,14 +359,6 @@ class GraphActivity : AbstractGraphActivity() {
                 graphInvalidate()
             }
         }
-
-//        checkPoint(BACK, 10) {
-//            it[0]?.let {
-//                path.remove(it)
-//                it.setEdgeColor(Color.MAGENTA)
-//                graphInvalidate()
-//            }
-//        }
 
     }
 
