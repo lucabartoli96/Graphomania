@@ -1,17 +1,19 @@
 package g.frith.graphomania
 
+import android.os.AsyncTask
 import android.os.Handler
 import android.os.Looper
 
 
-class Procedure(init: Procedure.()->Unit) {
+class Procedure<A, B, C>(init: Procedure<A, B, C>.()->Unit) {
 
-    private val checkPoints = mutableMapOf<String, Pair<()->Unit, Long>>()
+    private val checkPoints = mutableMapOf<String, Pair<(Array<out B?>)->Unit, Long>>()
 
     private var startAction: (()->Unit)? = null
-    private var endAction: (()->Unit)? = null
+    private var endAction: ((C)->Unit)? = null
+    private var currentCheckPoint: ((Array<out B?>)->Unit)? = null
 
-    private lateinit var code: (Array<out Any>)->Unit
+    private lateinit var code: Animation.(Array<out A>)-> C
 
     init {
         apply(init)
@@ -21,39 +23,46 @@ class Procedure(init: Procedure.()->Unit) {
         startAction = action
     }
 
-    fun end(action: () -> Unit) {
+    fun end(action: (C) -> Unit) {
         endAction = action
     }
 
-    fun checkPoint(checkPoint: String, time: Long = 500, action: ()->Unit) {
+    fun checkPoint(checkPoint: String, time: Long = 500, action: (Array<out B?>)->Unit) {
         checkPoints[checkPoint] = Pair(action, time)
     }
 
-    fun checkPoint(checkPoint: String) {
-        checkPoints[checkPoint]?.first?.invoke()
-        Thread.sleep(checkPoints[checkPoint]?.second ?: 500)
+    fun procedure(p: Animation.(Array<out A>)->C) {
+        code = p
     }
 
-    fun remove(checkPoint: String) {
-        checkPoints.remove(checkPoint)
+    operator fun invoke(vararg args: A) {
+        startAction?.invoke()
+        Animation().execute(*args)
     }
 
-    fun procedure(p: ((Array<out Any>)->Unit)?) {
-        if ( p !== null ) {
-            code = p
+    inner class Animation : AsyncTask<A, B, C>() {
+
+        fun checkPoint(checkPoint: String, vararg args: B) {
+            currentCheckPoint = checkPoints[checkPoint]?.first
+            publishProgress(*args)
+            Thread.sleep(checkPoints[checkPoint]?.second ?: 500)
         }
-    }
 
-    fun procedure(vararg args: Any) {
-        code.invoke(args)
-    }
+        override fun doInBackground(vararg args: A): C {
+            return code(args)
+        }
 
-    operator fun invoke(vararg args: Any) {
-        Thread {
-            startAction?.invoke()
-            code(args)
-            endAction?.invoke()
-        }.start()
-    }
+        override fun onPostExecute(result: C) {
+            endAction?.invoke(result)
+        }
 
+        override fun onProgressUpdate(vararg args: B?) {
+            currentCheckPoint?.invoke(args)
+        }
+
+        fun procedure(vararg args: A): C {
+            return code(args)
+        }
+
+    }
 }

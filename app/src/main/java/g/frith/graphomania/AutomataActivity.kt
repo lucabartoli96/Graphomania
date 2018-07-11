@@ -8,8 +8,6 @@ import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.Toast
-import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import kotlinx.android.synthetic.main.fragment_input_dialog.view.*
 
 
@@ -90,14 +88,19 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
 
     /**
      *
+     *
+     */
+    private var drawAnimation: ((Canvas)->Unit)
+
+    /**
+     *
      * Animation-related fields
      *
      */
     private var inputPaint = Paint()
-    private var inputRect = Rect()
     private var input = ""
+    private var inputRect = Rect()
     private var currentChar = -1
-    private var final = false
 
     init {
         inputPaint.style = Paint.Style.FILL
@@ -105,7 +108,17 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
     }
 
     fun drawInput(canvas: Canvas) {
-        val text = EditText(this)
+        inputPaint.getTextBounds(input, currentChar, input.length, inputRect)
+        val height = inputRect.height()
+
+        val posY = height.toFloat()
+        val posX = canvas.width/2f
+
+        canvas.drawText(input, currentChar, input.lastIndex, posX, posY, inputPaint)
+
+        canvas.drawArrowedStraightEdge(posX - START_ARROW_RADIUS, posY,
+                                        posX, posY, inputPaint, 0f,
+                                        ARROW_RADIUS, ARROW_ANGLE, inputPaint)
     }
 
     /**
@@ -113,18 +126,29 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
      * Procedures
      *
      */
-    private val checkAutomata = Procedure {
+    private val checkAutomata = Procedure<String, GraphComponent?, Boolean> {
+
+        val EDGE = "edge"
+        val NODE = "node"
+        val RESTORE = "restore"
 
         start {
             animationRunning = true
         }
 
         end {
+
+            if (it) {
+                alert("Accepted!")
+            } else {
+                alert ("Not Accepted!")
+            }.show()
+
             animationRunning = false
         }
 
-        procedure {
-            input = it[0].toString()
+        procedure { // String
+            input = it[0]
 
             var node = (AutomataNode.start as AutomataNode)
             var usedEdge: GraphComponent? = null
@@ -134,17 +158,12 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
                 val c = input[i]
 
                 currentChar = i
-                final = node.final
 
-                usedEdge?.setEdgeColor(Color.YELLOW)
-                if ( usedEdge !== null ) checkPoint("edge")
-                usedEdge?.setDefaultPaint()
-
+                checkPoint(EDGE, usedEdge)
+                checkPoint(RESTORE, usedEdge)
                 usedEdge = null
-
-                node.setNodeColor(Color.RED)
-                checkPoint("node")
-                node.setDefaultPaint()
+                checkPoint(NODE, node)
+                checkPoint(RESTORE, node)
 
 
                 val loop = node.loop as AutomataLoop?
@@ -168,30 +187,34 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
 
             currentChar = input.length
 
-            usedEdge?.setEdgeColor(Color.YELLOW)
-            if ( usedEdge !== null ) checkPoint("edge")
-            usedEdge?.setDefaultPaint()
-            node.setNodeColor(Color.RED)
-            checkPoint("node")
-            node.setDefaultPaint()
-            checkPoint("node")
+            checkPoint(EDGE, usedEdge)
+            checkPoint(RESTORE, usedEdge)
+            checkPoint(NODE, node)
+            checkPoint(RESTORE, node)
 
-            input = if ( !node.final ||  usedEdge === null ) {
-                "Failed"
-            } else {
-                "Won"
+            node.final ||  usedEdge !== null
+
+        }
+
+        checkPoint(NODE, 500) {
+            it[0]?.let {
+                it.setNodeColor(Color.RED)
+                graphInvalidate()
             }
-
-            checkPoint("node")
-
         }
 
-        checkPoint("node", 1000) {
-            graphInvalidate()
+        checkPoint(EDGE, 500) {
+            it[0]?.let {
+                it.setEdgeColor(Color.GREEN)
+                graphInvalidate()
+            }
         }
 
-        checkPoint("edge", 1000) {
-            graphInvalidate()
+        checkPoint(RESTORE, 10) {
+            it[0]?.let {
+                it.setDefaultPaint()
+                graphInvalidate()
+            }
         }
 
     }
