@@ -146,6 +146,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      *
      */
     protected var animationRunning = false
+    protected var currentAnimation = ""
 
     protected open fun drawAnimation(canvas: Canvas) {
 
@@ -516,7 +517,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             setTextPaint(color)
         }
 
-        fun setNodeColor(color: Int) {
+        fun setVertexColor(color: Int) {
             setArcPaint(color)
             setNodePaint(color)
         }
@@ -561,6 +562,13 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             var selected: Node? = null
         }
 
+        open fun adj(): Iterable<Node> {
+            return edges.map { it.to }
+        }
+
+        open fun allEdges(): Iterable<Edge> {
+            return edges
+        }
 
         override fun select() {
             selected = this
@@ -576,7 +584,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         }
 
         override fun draw(canvas: Canvas) {
-            canvas.drawCircle(x, y, NODE_RADIUS, if ( isSelected() ) selectedArcPaint else arcPaint)
+            canvas.drawCircle(x, y, NODE_RADIUS, getNodePaint())
         }
 
         override fun contains(fingerX: Float, fingerY: Float): Boolean {
@@ -742,7 +750,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      * Gestures event listeners
      *
      */
-    private fun firstPointerDown(e: MotionEvent) {
+    protected open fun firstPointerDown(e: MotionEvent) {
         getClickedComponent(e)?.select()
         graphInvalidate()
     }

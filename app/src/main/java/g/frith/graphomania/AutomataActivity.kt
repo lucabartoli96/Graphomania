@@ -4,9 +4,7 @@ import android.graphics.*
 import android.view.MotionEvent
 import org.json.JSONObject
 import java.util.*
-import android.util.Log
 import android.view.View
-import android.widget.EditText
 import android.widget.LinearLayout
 import kotlinx.android.synthetic.main.fragment_input_dialog.view.*
 
@@ -20,6 +18,8 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
 
         const val START_ARROW_RADIUS = 30f
         const val START_ARROW_ANGLE = 60f
+
+        const val EXECUTION = "execution"
 
 
         /**
@@ -72,7 +72,6 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
     private var random = Random(GregorianCalendar().timeInMillis)
 
 
-
     /**
      *
      * store components to be created/modified,
@@ -88,13 +87,7 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
 
     /**
      *
-     *
-     */
-    private var drawAnimation: ((Canvas)->Unit)
-
-    /**
-     *
-     * Animation-related fields
+     * Execution animation-related fields
      *
      */
     private var inputPaint = Paint()
@@ -108,43 +101,46 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
     }
 
     fun drawInput(canvas: Canvas) {
-        inputPaint.getTextBounds(input, currentChar, input.length, inputRect)
-        val height = inputRect.height()
 
-        val posY = height.toFloat()
-        val posX = canvas.width/2f
+        if ( currentChar != input.length ) {
 
-        canvas.drawText(input, currentChar, input.lastIndex, posX, posY, inputPaint)
+            inputPaint.getTextBounds(input, currentChar, input.length, inputRect)
+            val height = inputRect.height()
 
-        canvas.drawArrowedStraightEdge(posX - START_ARROW_RADIUS, posY,
-                                        posX, posY, inputPaint, 0f,
-                                        ARROW_RADIUS, ARROW_ANGLE, inputPaint)
+            val posY = height.toFloat()
+            val posX = canvas.width/2f
+
+            canvas.drawText(input, currentChar, input.length, posX, posY, inputPaint)
+
+            canvas.drawArrowedStraightEdge(posX - START_ARROW_RADIUS, posY,
+                    posX, posY, inputPaint, 0f,
+                    ARROW_RADIUS, ARROW_ANGLE, inputPaint)
+        }
+
     }
+
+
 
     /**
      *
      * Procedures
      *
      */
-    private val checkAutomata = Procedure<String, GraphComponent?, Boolean> {
+    private val execOnInput = Procedure<String, GraphComponent?, Boolean> {
 
         val EDGE = "edge"
         val NODE = "node"
         val RESTORE = "restore"
 
         start {
+            currentAnimation = EXECUTION
             animationRunning = true
         }
 
         end {
-
-            if (it) {
-                alert("Accepted!")
-            } else {
-                alert ("Not Accepted!")
-            }.show()
-
+            currentAnimation = ""
             animationRunning = false
+            (if (it) alert(R.string.accepted) else alert (R.string.not_accepted)).show()
         }
 
         procedure { // String
@@ -192,13 +188,13 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
             checkPoint(NODE, node)
             checkPoint(RESTORE, node)
 
-            node.final ||  usedEdge !== null
+            node.final &&  usedEdge !== null
 
         }
 
         checkPoint(NODE, 500) {
             it[0]?.let {
-                it.setNodeColor(Color.RED)
+                it.setVertexColor(Color.RED)
                 graphInvalidate()
             }
         }
@@ -220,7 +216,10 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
     }
 
     override fun drawAnimation(canvas: Canvas) {
-        drawInput(canvas)
+        when( currentAnimation ) {
+            EXECUTION -> drawInput(canvas)
+        }
+
     }
 
 
@@ -251,7 +250,7 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
                         }
 
                         positiveButton(R.string.ok) {
-                            checkAutomata(nameInput.text.toString())
+                            execOnInput(nameInput.text.toString())
                         }
 
                         negativeButton(R.string.cancel)

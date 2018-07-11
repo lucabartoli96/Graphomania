@@ -41,4 +41,15 @@
 
     <string name="download_success">Successfully downloaded</string>
 
+    <string name="accepted">Accepted!</string>
+    <string name="not_accepted">Not Accepted!</string>
+
+    <string name="quit">Quit</string>
+
+    <string name="dfs">DFS</string>
+    <string name="bfs">BFS</string>
+    <string name="click_node">Click on a node to run algorithm</string>
+
+    <string name="reset_colors">Reset colors</string>
+
 </resources>
