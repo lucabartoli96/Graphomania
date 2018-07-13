@@ -7,7 +7,7 @@
     <string name="save">Save</string>
     <string name="run">Run</string>
     <string name="delete">Delete</string>
-    <string name="download">Download</string>
+    <string name="export">export</string>
 
     <string name="pick_type">Pick a type</string>
     <string name="choose_name">Choose a name</string>
@@ -52,4 +52,6 @@
 
     <string name="reset_colors">Reset colors</string>
 
+    <string name="new_project">Create Project</string>
+    <string name="load_project">Load Project</string>
 </resources>

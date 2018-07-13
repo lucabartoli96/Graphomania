@@ -2,12 +2,8 @@ package g.frith.graphomania
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.app.Notification
-import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -20,7 +16,6 @@ import android.util.Log
 import java.io.*
 import android.os.AsyncTask
 import android.support.v4.app.ActivityCompat
-import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
 import android.widget.Toast
 import android.support.v7.app.AlertDialog
@@ -270,7 +265,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             deleteAlert.show()
             true
         }
-        R.id.download -> {
+        R.id.export -> {
             dowload()
             true
         }

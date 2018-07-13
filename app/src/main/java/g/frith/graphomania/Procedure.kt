@@ -1,8 +1,6 @@
 package g.frith.graphomania
 
 import android.os.AsyncTask
-import android.os.Handler
-import android.os.Looper
 
 
 class Procedure<A, B, C>(init: Procedure<A, B, C>.()->Unit) {
