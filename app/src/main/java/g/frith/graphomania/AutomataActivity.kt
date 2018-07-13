@@ -568,23 +568,20 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
 
                             for (h in v..(if ('z' < v + 5) 'z' else v + 5)) {
 
-                                toggleButton {
+                                toggleButton(R.style.ToggleButton) {
+
                                     text = h.toString()
                                     textOn = h.toString()
                                     textOff = h.toString()
                                     layoutParams = LinearLayout.LayoutParams(100, 100)
-                                    typeface = Typeface.DEFAULT
+                                    setBackgroundColor(Color.TRANSPARENT)
 
                                     when (h) {
                                         in symbols -> {
                                             isChecked = true
-                                            setBackgroundColor(Color.LTGRAY)
                                         }
                                         in disabled -> {
                                             isEnabled = false
-                                        }
-                                        else -> {
-                                            setBackgroundColor(Color.TRANSPARENT)
                                         }
                                     }
 
@@ -598,7 +595,6 @@ class AutomataActivity : AbstractLoopedGraphActivity() {
                                             symbols.remove(symbol)
                                         }
 
-                                        setBackgroundColor(if (isChecked) Color.LTGRAY else Color.TRANSPARENT)
                                         yesButton?.isEnabled = !symbols.isEmpty()
                                     }
                                 }

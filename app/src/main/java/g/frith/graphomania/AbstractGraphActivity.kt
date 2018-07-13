@@ -35,16 +35,18 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         const val ENLARGE_TOUCH = 10f
         const val ARROW_ANGLE = 30f
         const val ARROW_RADIUS = 30f
+        const val NODE_STROKE_WIDTH = 5f
+        const val EDGE_STROKE_WIDTH = 4f
 
 
         private fun initNodePaint(paint: Paint) {
             paint.style = Paint.Style.STROKE
-            paint.strokeWidth = 4f
+            paint.strokeWidth = NODE_STROKE_WIDTH
         }
 
         private fun initArcPaint(paint: Paint) {
             paint.style = Paint.Style.STROKE
-            paint.strokeWidth = 3f
+            paint.strokeWidth = EDGE_STROKE_WIDTH
         }
 
         private fun initTextPaint(paint: Paint) {

@@ -7,4 +7,7 @@
     <style name="TitleText" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="android:textSize">30dp</item>
     </style>
+    <style name="ToggleButton" parent="Theme.AppCompat.Light">
+        <item name="android:textColor">@color/toggle_button</item>
+    </style>
 </resources>

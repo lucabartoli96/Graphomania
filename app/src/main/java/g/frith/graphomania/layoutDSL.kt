@@ -2,6 +2,7 @@ package g.frith.graphomania
 
 import android.R
 import android.app.Activity
+import android.support.v7.view.ContextThemeWrapper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.ViewGroup
@@ -53,8 +54,12 @@ fun ViewGroup.vertical(init: LinearLayout.()->Unit) {
 }
 
 
-fun ViewGroup.toggleButton(init: ToggleButton.()->Unit) {
-    val tB = ToggleButton(context)
+fun ViewGroup.toggleButton(style:Int? = null, init: ToggleButton.()->Unit) {
+    val tB = if (style == null) {
+        ToggleButton(context)
+    } else {
+        ToggleButton(ContextThemeWrapper(context, style))
+    }
     addView(tB)
     tB.apply(init)
 }
