@@ -560,6 +560,11 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
         }
 
         alert("Pick symbols") {
+
+            onShow {
+                yesButton?.isEnabled = symbols.isNotEmpty()
+            }
+
             view {
                 vertical {
                     for (v in 'a'..'z' step 6) {
@@ -595,7 +600,7 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
                                             symbols.remove(symbol)
                                         }
 
-                                        yesButton?.isEnabled = !symbols.isEmpty()
+                                        yesButton?.isEnabled = symbols.isNotEmpty()
                                     }
                                 }
                             }
