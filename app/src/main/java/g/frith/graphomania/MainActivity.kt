@@ -1,6 +1,5 @@
 package g.frith.graphomania
 
-import android.content.AsyncQueryHandler
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -19,7 +18,7 @@ class MainActivity : AppCompatActivity() {
     private val fileName = { type: String, name: String -> "${type}_$name.json" }
 
     private val types = mapOf(
-            "automata" to AutomataActivity::class.java,
+            "automaton" to AutomatonActivity::class.java,
             "graph" to GraphActivity::class.java
     )
 

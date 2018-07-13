@@ -347,7 +347,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         IOTask {
             saved = try {
-                val file = openFileOutput(fileName(type, name),  Context.MODE_PRIVATE)
+                val file = openFileOutput(fileName("automaton", name),  Context.MODE_PRIVATE)
                 val outputStreamWriter = OutputStreamWriter(file)
                 outputStreamWriter.write(getJson())
                 outputStreamWriter.close()

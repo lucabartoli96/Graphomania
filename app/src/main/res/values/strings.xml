@@ -19,7 +19,7 @@
     <string name="dont_match">Invalid name (alphanumeric characters only)</string>
     <string name="name_exists">Name already exists</string>
 
-    <string name="empty_automata">Automata in empty</string>
+    <string name="empty_automaton">Automaton in empty</string>
     <string name="sorry">Sorry!</string>
 
     <string name="save_success">Project saved</string>
@@ -30,7 +30,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
 
-    <string name="input_automata">Check input</string>
+    <string name="input_automaton">Check input</string>
     <string name="choose_input">Choose an input</string>
     <string name="input_example">trytoacceptthisword</string>
     <string name="wrong_input">Only a, b, …, z characters allowed</string>
