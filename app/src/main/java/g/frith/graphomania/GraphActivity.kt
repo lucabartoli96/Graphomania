@@ -131,7 +131,6 @@ class GraphActivity : AbstractGraphActivity() {
         var visited = hashMapOf<Node, Boolean>()
         var marked = mutableSetOf<Edge>()
         var path = mutableSetOf<Edge>()
-
         var visiting: Node? = null
 
         val visitingPaint = Paint()
@@ -146,6 +145,7 @@ class GraphActivity : AbstractGraphActivity() {
             }
             marked = mutableSetOf()
             path = mutableSetOf()
+            visiting = null
 
             //currentAnimation = DFS
             animationRunning = true
