@@ -1,6 +1,7 @@
 package g.frith.graphomania
 
 import android.Manifest
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
@@ -37,6 +38,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         const val ARROW_RADIUS = 30f
         const val NODE_STROKE_WIDTH = 5f
         const val EDGE_STROKE_WIDTH = 4f
+        const val NODE_ANIM_DURATION: Long = 1500
 
 
         private fun initNodePaint(paint: Paint) {
@@ -139,7 +141,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     /**
      *
-     * Animation-related stuff
+     * Animator-related stuff
      *
      */
     protected var animationRunning = false
@@ -229,6 +231,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         graphView = GraphView(this)
         mainContainer.addView(graphView)
+
+        Animator.set(graphView)
 
         initGraphGestures()
 
@@ -555,6 +559,33 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         val edges = mutableListOf<Edge>()
 
+        private var firstTime = true
+        private var animatingRadius = 0f
+        private var animation: ValueAnimator
+
+        init {
+            animation = Animator.get().animateFloat(1f, NODE_RADIUS, NODE_ANIM_DURATION) {
+                animatingRadius = it
+            }
+        }
+
+        protected val radius: Float
+        get() {
+            return when {
+                firstTime -> {
+                    animation.start()
+                    firstTime = false
+                    1f
+                }
+                animation.isRunning -> {
+                    animatingRadius
+                }
+                else -> {
+                    NODE_RADIUS
+                }
+            }
+        }
+
         companion object {
             var selected: Node? = null
         }
@@ -581,7 +612,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         }
 
         override fun draw(canvas: Canvas) {
-            canvas.drawCircle(x, y, NODE_RADIUS, getNodePaint())
+            canvas.drawCircle(x, y, radius, getNodePaint())
         }
 
         override fun contains(fingerX: Float, fingerY: Float): Boolean {
@@ -648,6 +679,73 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
                 diffSides && inEdge
             }
 
+        }
+
+    }
+
+
+    protected class Animator private constructor(var view: View) {
+
+        companion object {
+            private var instance: Animator? = null
+
+            fun set(view: View) {
+                if ( instance === null ) {
+                    instance = Animator(view)
+                } else {
+                    instance?.view = view
+                }
+            }
+
+            fun get(): Animator {
+                val storeInstance = instance
+
+                if ( storeInstance === null ) {
+                    throw Exception("View never set")
+                } else {
+                    return storeInstance
+                }
+            }
+        }
+
+
+        private fun setParams(animation: ValueAnimator,
+                              duration: Long, delay: Long? = null) {
+            animation.duration = duration
+            if ( delay !== null ) {
+                animation.startDelay = delay
+            }
+        }
+
+        fun animateFloat(startValue: Float, endValue: Float,
+                         duration: Long, delay: Long? = null,
+                         onUpdate: (Float)->Unit): ValueAnimator {
+
+            val animation = ValueAnimator.ofFloat(startValue, endValue)
+            setParams(animation, duration, delay)
+            animation.addUpdateListener {
+                (it.animatedValue as Float).let {
+                    onUpdate(it)
+                    view.invalidate()
+                }
+            }
+            return animation
+        }
+
+
+        fun animateInt(startValue: Int, endValue: Int,
+                       duration: Long, delay: Long? = null,
+                       onUpdate: (Int)->Unit): ValueAnimator {
+
+            val animation = ValueAnimator.ofInt(startValue, endValue)
+            setParams(animation, duration, delay)
+            animation.addUpdateListener {
+                (it.animatedValue as Int).let {
+                    onUpdate(it)
+                    view.invalidate()
+                }
+            }
+            return animation
         }
 
     }
