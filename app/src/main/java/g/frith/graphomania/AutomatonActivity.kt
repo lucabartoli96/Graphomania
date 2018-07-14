@@ -364,7 +364,7 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
 
         override fun draw(canvas: Canvas) {
             canvas.drawArrowedCurveLabeledEdge(
-                    from.x, from.y, to.x, to.y,
+                    from.x, from.y, toX, toY,
                     curve, NODE_RADIUS, getArcPaint(),
                     ARROW_RADIUS, ARROW_ANGLE, getArrowPaint(),
                     symbolsStr, getTextPaint()

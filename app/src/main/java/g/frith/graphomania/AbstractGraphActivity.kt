@@ -38,7 +38,9 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         const val ARROW_RADIUS = 30f
         const val NODE_STROKE_WIDTH = 5f
         const val EDGE_STROKE_WIDTH = 4f
-        const val NODE_ANIM_DURATION: Long = 1500
+
+        const val NODE_ANIM_DURATION: Long = 500
+        const val EDGE_ANIM_DURATION: Long = 300
 
 
         private fun initNodePaint(paint: Paint) {
@@ -637,6 +639,59 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             from.edges.add(this)
         }
 
+        private val p = getPointOnSegment(from.x, from.y, to.x, to.y, 2*NODE_RADIUS)
+        private var firstTimeX = true
+        private var firstTimeY = true
+        private var animatingX = 0f
+        private var animatingY = 0f
+        private var animationX: ValueAnimator
+        private var animationY: ValueAnimator
+
+        init {
+            animationX = Animator.get().animateFloat(p.x, to.x,
+                    EDGE_ANIM_DURATION) {
+                animatingX = it
+            }
+            animationY = Animator.get().animateFloat(p.y, to.y,
+                    EDGE_ANIM_DURATION) {
+                animatingY = it
+            }
+        }
+
+        protected val toX: Float
+            get() {
+                return when {
+                    firstTimeX -> {
+                        animationX.start()
+                        firstTimeX = false
+                        p.x
+                    }
+                    animationX.isRunning -> {
+                        animatingX
+                    }
+                    else -> {
+                        to.x
+                    }
+                }
+            }
+
+
+        protected val toY: Float
+            get() {
+                return when {
+                    firstTimeY -> {
+                        animationY.start()
+                        firstTimeY = false
+                        p.y
+                    }
+                    animationY.isRunning -> {
+                        animatingY
+                    }
+                    else -> {
+                        to.y
+                    }
+                }
+            }
 
         override fun select() {
             selected = this
@@ -652,7 +707,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         override fun draw(canvas: Canvas) {
             canvas.drawCurveEdge(
-                    from.x, from.y, to.x, to.y, curve, NODE_RADIUS, getArcPaint()
+                    from.x, from.y, toX, toY, curve, NODE_RADIUS, getArcPaint()
             )
         }
 
