@@ -1,5 +1,6 @@
 package g.frith.graphomania
 
+import android.animation.ValueAnimator
 import android.graphics.*
 import android.view.MotionEvent
 import org.json.JSONObject
@@ -272,19 +273,58 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
             var start: Node? = null
         }
 
+        private var firstTime = true
+        private var animatingInner = 0f
+        private var animationInner: ValueAnimator
+        private var animationInnerEnter: ValueAnimator
+
+        init {
+
+            animationInnerEnter = Animator.get().animateFloat(1f, NODE_RADIUS - 6,
+                    NODE_ANIM_DURATION/2, NODE_ANIM_DURATION) {
+                animatingInner = it
+            }
+
+            animationInner = Animator.get().animateFloat(1f, NODE_RADIUS - 6,
+                    NODE_ANIM_DURATION/2) {
+                animatingInner = it
+            }
+        }
+
+        private val innerRadius: Float
+            get() {
+                return when {
+                    firstTime -> {
+                        animationInnerEnter.start()
+                        firstTime = false
+                        0f
+                    }
+                    animationInnerEnter.isStarted && !animationInnerEnter.isRunning-> {
+                        0f
+                    }
+                    animationInner.isRunning || animationInnerEnter.isStarted -> {
+                        animatingInner
+                    }
+                    else -> {
+                        NODE_RADIUS - 6
+                    }
+                }
+            }
+
+
         fun isStart(): Boolean {
             return this === start
         }
 
         override fun draw(canvas: Canvas) {
 
-            if ( final ) {
+            if ( final || animationInner.isRunning ) {
 
-                canvas.drawCircle(x, y, NODE_RADIUS - 6, getNodePaint())
-                canvas.drawCircle(x, y, NODE_RADIUS, getArcPaint())
+                canvas.drawCircle(x, y, radius, getArcPaint())
+                canvas.drawCircle(x, y, innerRadius, getArcPaint())
 
             } else {
-                canvas.drawCircle(x, y, NODE_RADIUS, getNodePaint())
+                canvas.drawCircle(x, y, radius, getNodePaint())
             }
 
             if ( isStart() ) {
@@ -297,6 +337,13 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
 
         fun toggleFinal() {
             final = !final
+
+            if ( final ) {
+                firstTime = false
+                animationInner.start()
+            } else {
+                animationInner.reverse()
+            }
         }
     }
 
