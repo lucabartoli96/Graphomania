@@ -97,8 +97,10 @@ class MainActivity : AppCompatActivity() {
         for (file in fileList()) {
             val matcher = filePattern.matcher(file)
             if (matcher.matches()) {
-                //PER CANCELLARE
+                //PER CANCELLARE, HACK!!
+                //Log.d("file", file)
                 //File(filesDir, file).delete()
+
                 val type = matcher.group(1)
                 val name = matcher.group(2)
 

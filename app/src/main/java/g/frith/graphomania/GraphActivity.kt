@@ -30,8 +30,8 @@ class GraphActivity : AbstractGraphActivity() {
         }
     }
 
-    private class GraphEdge(from: Node, to: Node, curve: Float):
-            Edge(from, to, curve) {
+    private class GraphEdge(from: Node, to: Node, curve: Float, delay: Long? = null):
+            Edge(from, to, curve, delay) {
         init {
             (to as GraphNode).edgesTo.add(this)
         }
@@ -423,7 +423,8 @@ class GraphActivity : AbstractGraphActivity() {
 
             GraphEdge(
                     nodes[i], nodes[j],
-                    edgeJson.getDouble("curve").toFloat()
+                    edgeJson.getDouble("curve").toFloat(),
+                    NODE_ANIM_DURATION
             )
         }
     }

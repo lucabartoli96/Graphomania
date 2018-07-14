@@ -348,11 +348,12 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
     }
 
 
-    private class AutomatonEdge(from: Node, to: Node, curve: Float, symbols: List<Char>) :
-            Edge(from, to, curve) {
+    private class AutomatonEdge(from: Node, to: Node, curve: Float,
+                                symbols: List<Char>, delay: Long? = null) :
+            Edge(from, to, curve, delay) {
 
         constructor(edge: Edge, symbols: List<Char>) :
-                this(edge.from, edge.to, edge.curve, symbols)
+                this(edge.from, edge.to, edge.curve, symbols, edge.delay)
 
         private var symbolsStr: String = joinToLabel(symbols.sorted())
 
@@ -363,12 +364,14 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
             }
 
         override fun draw(canvas: Canvas) {
-            canvas.drawArrowedCurveLabeledEdge(
-                    from.x, from.y, toX, toY,
-                    curve, NODE_RADIUS, getArcPaint(),
-                    ARROW_RADIUS, ARROW_ANGLE, getArrowPaint(),
-                    symbolsStr, getTextPaint()
-            )
+            if ( !isDelayed() ) {
+                canvas.drawArrowedCurveLabeledEdge(
+                        from.x, from.y, toX, toY,
+                        curve, NODE_RADIUS, getArcPaint(),
+                        ARROW_RADIUS, ARROW_ANGLE, getArrowPaint(),
+                        symbolsStr, getTextPaint()
+                )
+            }
         }
     }
 
@@ -479,6 +482,8 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
             AutomatonNode.start = nodes[i]
         }
 
+        graphInvalidate()
+
         val edgesJson = graph.getJSONArray("edges")
 
         for ( idx in 0 until edgesJson.length()) {
@@ -498,7 +503,7 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
             AutomatonEdge(
                     nodes[i], nodes[j],
                     edgeJson.getDouble("curve").toFloat(),
-                    symbols
+                    symbols, NODE_ANIM_DURATION
             )
         }
 

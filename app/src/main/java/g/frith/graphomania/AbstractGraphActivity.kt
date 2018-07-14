@@ -317,6 +317,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      */
     private fun load() {
 
+        animationRunning = true
+
         IOTask {
 
             try {
@@ -329,10 +331,9 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
                     val allText = bufferedReader.use(BufferedReader::readText)
 
                     inputStream.close()
-                    allText
-                } else {
-                    ""
+                    parseJson(allText)
                 }
+                Unit
             } catch (e: FileNotFoundException) {
                 Log.e("graph activity", "File not found: " + e.toString())
                 ""
@@ -341,11 +342,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
                 ""
             }
         }.post {
-            if ( !it.isEmpty() ) {
-                parseJson(it)
-            }
+            animationRunning = false
         }
-
 
     }
 
@@ -353,7 +351,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         IOTask {
             saved = try {
-                val file = openFileOutput(fileName("automaton", name),  Context.MODE_PRIVATE)
+                val file = openFileOutput(fileName(type, name),  Context.MODE_PRIVATE)
                 val outputStreamWriter = OutputStreamWriter(file)
                 outputStreamWriter.write(getJson())
                 outputStreamWriter.close()
@@ -629,7 +627,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     }
 
 
-    protected open class Edge(val from: Node, val to: Node, var curve: Float) : GraphComponent() {
+    protected open class Edge(val from: Node, val to: Node,
+                              var curve: Float, val delay: Long? = null) : GraphComponent() {
 
         companion object {
             var selected: Edge? = null
@@ -648,12 +647,10 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         private var animationY: ValueAnimator
 
         init {
-            animationX = Animator.get().animateFloat(p.x, to.x,
-                    EDGE_ANIM_DURATION) {
+            animationX = Animator.get().animateFloat(p.x, to.x, EDGE_ANIM_DURATION, delay) {
                 animatingX = it
             }
-            animationY = Animator.get().animateFloat(p.y, to.y,
-                    EDGE_ANIM_DURATION) {
+            animationY = Animator.get().animateFloat(p.y, to.y, EDGE_ANIM_DURATION, delay) {
                 animatingY = it
             }
         }
@@ -693,6 +690,11 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
                 }
             }
 
+        protected fun isDelayed(): Boolean {
+            return animationX.isStarted && animationY.isStarted &&
+                   !animationX.isRunning && !animationY.isRunning
+        }
+
         override fun select() {
             selected = this
         }
@@ -706,9 +708,11 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         }
 
         override fun draw(canvas: Canvas) {
-            canvas.drawCurveEdge(
-                    from.x, from.y, toX, toY, curve, NODE_RADIUS, getArcPaint()
-            )
+            if ( !isDelayed() ) {
+                canvas.drawCurveEdge(
+                        from.x, from.y, toX, toY, curve, NODE_RADIUS, getArcPaint()
+                )
+            }
         }
 
         override fun contains(fingerX: Float, fingerY: Float): Boolean {
