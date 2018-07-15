@@ -352,8 +352,6 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
                                 symbols: List<Char>, delay: Long? = null) :
             Edge(from, to, curve, delay) {
 
-        constructor(edge: Edge, symbols: List<Char>) :
-                this(edge.from, edge.to, edge.curve, symbols, edge.delay)
 
         private var symbolsStr: String = joinToLabel(symbols.sorted())
 
@@ -376,11 +374,9 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
     }
 
 
-    private class AutomatonLoop(node: Node, angle: Float, symbols: List<Char>) :
-            Loop(node, angle) {
-
-        constructor(loop: Loop, symbols: List<Char>) :
-                this(loop.node, loop.angle, symbols)
+    private class AutomatonLoop(node: Node, angle: Float,
+                                symbols: List<Char>, delay: Long? = null) :
+            Loop(node, angle, delay) {
 
         private var symbolsStr: String = joinToLabel(symbols.sorted())
 
@@ -391,11 +387,22 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
             }
 
         override fun draw(canvas: Canvas) {
-            canvas.drawArrowedLabeledLoop(
-                    node.x, node.y, LOOP_CURVE, angle, NODE_RADIUS, getArcPaint(),
-                    ARROW_RADIUS, ARROW_ANGLE, getArrowPaint(),
-                    symbolsStr, getTextPaint()
-            )
+
+            if ( !isDelayed() ) {
+
+                if (isRunning()) {
+                    canvas.drawArrowedLabeledLoopFraction(node.x, node.y, LOOP_CURVE, angle,
+                            NODE_RADIUS, getArcPaint(), fract,
+                            ARROW_RADIUS, ARROW_ANGLE, getArrowPaint(),
+                            symbolsStr, getTextPaint())
+                } else {
+                    canvas.drawArrowedLabeledLoop(
+                            node.x, node.y, LOOP_CURVE, angle, NODE_RADIUS, getArcPaint(),
+                            ARROW_RADIUS, ARROW_ANGLE, getArrowPaint(),
+                            symbolsStr, getTextPaint()
+                    )
+                }
+            }
         }
 
     }
@@ -482,8 +489,6 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
             AutomatonNode.start = nodes[i]
         }
 
-        graphInvalidate()
-
         val edgesJson = graph.getJSONArray("edges")
 
         for ( idx in 0 until edgesJson.length()) {
@@ -526,7 +531,7 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
             (nodes[i] as LoopedNode).loop = AutomatonLoop(
                     nodes[i],
                     loopJson.getDouble("angle").toFloat(),
-                    symbols
+                    symbols, NODE_ANIM_DURATION
             )
         }
 

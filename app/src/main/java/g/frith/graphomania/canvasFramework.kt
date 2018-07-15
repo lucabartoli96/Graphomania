@@ -159,7 +159,7 @@ private fun Canvas.drawCurveEdgeMain(fromX: Float, fromY: Float,
 
 
 private fun Canvas.drawLoopMain(fromX: Float, fromY: Float, radius: Float, angle: Float,
-                                offset: Float, paint: Paint,
+                                offset: Float, paint: Paint, fraction: Float? = null,
                                 arrowRadius: Float? = null, arrowAngle: Float? = null,
                                 arrowPaint: Paint? = null,
                                 text: String? = null, textPaint: Paint? = null) {
@@ -177,19 +177,29 @@ private fun Canvas.drawLoopMain(fromX: Float, fromY: Float, radius: Float, angle
             centerX + radius, centerY + radius)
 
     arcPath.rewind()
-    arcPath.addArc(rect, startAngle + 2*offsetAngle, 360f - 2*offsetAngle)
+
+    val sweepAngle = (360f - 2*offsetAngle)*(fraction ?: 1f)
+
+    arcPath.addArc(rect, startAngle + 2*offsetAngle, sweepAngle)
     this.drawPath(arcPath, paint)
 
     if ( arrowRadius !== null && arrowAngle !== null && arrowPaint !== null ) {
-        val lineAngle = getInclination(fromX, fromY, pX, pY)
-        val rightAngle =  lineAngle - Math.toRadians(215.0).toFloat()
 
-        drawArrowHead(pX, pY, rightAngle,
+
+        val rotAngle = if(fraction !== null) 2*offsetAngle + sweepAngle else 0f
+        val headX = getRotatedX(centerX, centerY, pX, pY, rotAngle)
+        val headY = getRotatedY(centerX, centerY, pX, pY, rotAngle)
+        val centerAngle  = -getCenterAngle(radius, arrowRadius)
+        val x = getRotatedX(centerX, centerY, headX, headY, centerAngle)
+        val y = getRotatedY(centerX, centerY, headX, headY, centerAngle)
+        val incl = getInclination(headX, headY, x, y) - Math.toRadians(180.0).toFloat()
+
+        drawArrowHead(headX, headY, incl,
                       Math.toRadians(arrowAngle.toDouble()).toFloat(),
                       arrowRadius, arrowPaint)
     }
 
-    if ( text !== null  && textPaint !== null ) {
+    if ( (fraction === null || fraction > 0.7f) && text !== null  && textPaint !== null ) {
         val middleX = getRotatedX(fromX, fromY, fromX + 2 * radius, fromY, angle)
         val middleY = getRotatedY(fromX, fromY, fromX + 2 * radius, fromY, angle)
 
@@ -284,7 +294,8 @@ fun Canvas.drawArrowedLoop(fromX: Float, fromY: Float, radius: Float, angle: Flo
                            arrowPaint: Paint) {
 
     drawLoopMain(fromX, fromY, radius, angle, offset, paint,
-            arrowRadius, arrowAngle, arrowPaint)
+            arrowRadius = arrowRadius, arrowAngle = arrowAngle,
+            arrowPaint = arrowPaint)
 }
 
 
@@ -293,7 +304,7 @@ fun Canvas.drawLabeledLoop(fromX: Float, fromY: Float, radius: Float, angle: Flo
                            text: String, textPaint: Paint) {
 
     drawLoopMain(fromX, fromY, radius, angle, offset, paint,
-            text=text, textPaint=textPaint)
+                text=text, textPaint=textPaint)
 }
 
 
@@ -304,6 +315,19 @@ fun Canvas.drawArrowedLabeledLoop(fromX: Float, fromY: Float, radius: Float, ang
                                   text: String, textPaint: Paint) {
 
     drawLoopMain(fromX, fromY, radius, angle, offset, paint,
-                 arrowRadius, arrowAngle, arrowPaint,
-                 text, textPaint)
+                 arrowRadius = arrowRadius, arrowAngle = arrowAngle,
+                 arrowPaint = arrowPaint,
+                 text = text, textPaint=textPaint)
+}
+
+fun Canvas.drawArrowedLabeledLoopFraction(fromX: Float, fromY: Float, radius: Float, angle: Float,
+                                          offset: Float, paint: Paint, fraction: Float,
+                                          arrowRadius: Float, arrowAngle: Float,
+                                          arrowPaint: Paint,
+                                          text: String, textPaint: Paint) {
+
+    drawLoopMain(fromX, fromY, radius, angle, offset, paint, fraction,
+            arrowRadius = arrowRadius, arrowAngle = arrowAngle,
+            arrowPaint = arrowPaint,
+            text = text, textPaint=textPaint)
 }

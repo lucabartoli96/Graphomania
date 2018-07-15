@@ -1,6 +1,9 @@
 package g.frith.graphomania
 
+import android.animation.ValueAnimator
 import android.graphics.Canvas
+import android.graphics.PointF
+import android.util.Log
 import android.view.MotionEvent
 
 abstract class AbstractLoopedGraphActivity : AbstractGraphActivity() {
@@ -20,7 +23,8 @@ abstract class AbstractLoopedGraphActivity : AbstractGraphActivity() {
     }
 
 
-    protected open class Loop(val node: Node, var angle: Float) : GraphComponent() {
+    protected open class Loop(val node: Node, var angle: Float,
+                              val delay: Long? = null) : GraphComponent() {
 
         companion object {
             var selected: Loop? = null
@@ -28,6 +32,43 @@ abstract class AbstractLoopedGraphActivity : AbstractGraphActivity() {
 
         init {
             (node as LoopedNode).loop = this
+        }
+
+        private var firstTime = true
+        private var animatingFract = 0f
+        private var animation: ValueAnimator
+
+        init {
+
+            animation = Animator.get().animateInt(1, 100,
+                    EDGE_ANIM_DURATION, delay) {
+                animatingFract = it/100f
+            }
+        }
+
+        protected val fract: Float
+            get() {
+                return when {
+                    firstTime -> {
+                        animation.start()
+                        firstTime = false
+                        1f/100f
+                    }
+                    animation.isRunning -> {
+                        animatingFract
+                    }
+                    else -> {
+                        1f
+                    }
+                }
+            }
+
+        protected fun isDelayed(): Boolean {
+            return delay !== null && animation.isStarted && !animation.isRunning
+        }
+
+        protected fun isRunning(): Boolean {
+            return firstTime || animation.isRunning
         }
 
         override fun select() {

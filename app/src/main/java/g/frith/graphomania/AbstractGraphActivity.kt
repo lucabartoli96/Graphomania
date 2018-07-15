@@ -39,7 +39,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         const val NODE_STROKE_WIDTH = 5f
         const val EDGE_STROKE_WIDTH = 4f
 
-        const val NODE_ANIM_DURATION: Long = 500
+        const val NODE_ANIM_DURATION: Long = 400
         const val EDGE_ANIM_DURATION: Long = 300
 
 
@@ -343,6 +343,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             }
         }.post {
             animationRunning = false
+            graphView.invalidate()
         }
 
     }
