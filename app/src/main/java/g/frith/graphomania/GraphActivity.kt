@@ -1,16 +1,11 @@
 package g.frith.graphomania
 
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.os.Bundle
-import android.util.Log
 import android.view.MotionEvent
-import android.view.View
-import android.widget.EditText
 import android.widget.TextView
-import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import org.json.JSONObject
 import java.util.*
 

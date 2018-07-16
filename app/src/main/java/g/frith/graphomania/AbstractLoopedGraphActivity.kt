@@ -2,8 +2,6 @@ package g.frith.graphomania
 
 import android.animation.ValueAnimator
 import android.graphics.Canvas
-import android.graphics.PointF
-import android.util.Log
 import android.view.MotionEvent
 
 abstract class AbstractLoopedGraphActivity : AbstractGraphActivity() {
