@@ -2,6 +2,8 @@ package g.frith.graphomania
 
 import android.graphics.Color
 import android.graphics.Paint
+import android.os.Bundle
+import android.util.Log
 import android.view.MotionEvent
 import org.json.JSONObject
 import java.util.*
@@ -41,40 +43,51 @@ class GraphActivity : AbstractGraphActivity() {
     override val menuItems = mapOf<Int, ()->Unit>(
 
             R.string.reset_colors to {
-                for ( node in nodes ) {
-                    node.setDefaultPaint()
-                    for ( edge in node.edges ) {
-                        edge.setDefaultPaint()
-                    }
+                if ( !animationRunning ) {
+                    resetColors()
                 }
                 graphInvalidate()
             },
 
             R.string.dfs to {
-                alert(R.string.dfs, R.string.click_node) {
+                if ( !animationRunning && !dfsPending && !bfsPending) {
+                    alert(R.string.dfs, R.string.click_node) {
 
-                    positiveButton(R.string.ok) {
-                        dfsPending = true
-                    }
+                        positiveButton(R.string.ok) {
+                            resetColors()
+                            dfsPending = true
+                        }
 
-                    negativeButton(R.string.quit)
-                }.show()
+                        negativeButton(R.string.quit)
+                    }.show()
+                }
             },
 
             R.string.bfs to {
-                alert(R.string.bfs, R.string.click_node) {
+                if ( !animationRunning && !dfsPending && !bfsPending) {
+                    alert(R.string.bfs, R.string.click_node) {
 
-                    positiveButton(R.string.ok) {
-                        bfsPending = true
-                    }
+                        positiveButton(R.string.ok) {
+                            resetColors()
+                            bfsPending = true
+                        }
 
-                    negativeButton(R.string.quit)
-                }.show()
+                        negativeButton(R.string.quit)
+                    }.show()
+                }
             }
 
 
 
     )
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        procedures.add(dfs)
+        procedures.add(bfs)
+        
+    }
 
 
     /**
@@ -114,6 +127,15 @@ class GraphActivity : AbstractGraphActivity() {
     }
 
 
+    private fun resetColors() {
+        for ( node in nodes ) {
+            node.setDefaultPaint()
+            for (edge in node.edges) {
+                edge.setDefaultPaint()
+            }
+        }
+    }
+
 
     /**
      *
@@ -121,6 +143,9 @@ class GraphActivity : AbstractGraphActivity() {
      *
      */
     private val dfs = Procedure<Node, GraphComponent, Unit> {
+
+        val LONG_INTERVAL: Long = 150
+        val SHORT_INTERVAL: Long = 10
 
         val VISIT = "visit"
         val EDGE = "edge"
@@ -185,7 +210,7 @@ class GraphActivity : AbstractGraphActivity() {
 
         }
 
-        checkPoint(VISIT, 1000) {
+        checkPoint(VISIT, LONG_INTERVAL) {
             it[0]?.let {
                 visiting?.setDefaultPaint()
                 visiting?.setVertexColor(Color.RED)
@@ -197,14 +222,14 @@ class GraphActivity : AbstractGraphActivity() {
             }
         }
 
-        checkPoint(EDGE, 300) {
+        checkPoint(EDGE, LONG_INTERVAL) {
             it[0]?.let {
                 it.setEdgeColor(Color.GREEN)
                 graphInvalidate()
             }
         }
 
-        checkPoint(MARK, 10) {
+        checkPoint(MARK, LONG_INTERVAL) {
             it[0]?.let {
                 marked.add(it as Edge)
                 path.add(it)
@@ -213,7 +238,7 @@ class GraphActivity : AbstractGraphActivity() {
             }
         }
 
-        checkPoint(RESTORE, 10) {
+        checkPoint(RESTORE, SHORT_INTERVAL) {
             it[0]?.let {
 
                 when (it as Edge) {
@@ -227,7 +252,7 @@ class GraphActivity : AbstractGraphActivity() {
             }
         }
 
-        checkPoint(BACK, 10) {
+        checkPoint(BACK, SHORT_INTERVAL) {
             it[0]?.let {
                 path.remove(it)
                 it.setEdgeColor(Color.MAGENTA)
@@ -239,6 +264,9 @@ class GraphActivity : AbstractGraphActivity() {
 
 
     private val bfs = Procedure<Node, GraphComponent, Unit> {
+
+        val LONG_INTERVAL: Long = 200
+        val SHORT_INTERVAL: Long = 10
 
         val ENQUE = "enque"
         val DEQUE = "deque"
@@ -309,17 +337,19 @@ class GraphActivity : AbstractGraphActivity() {
 
             }
 
+            checkPoint(DEQUE, root)
 
         }
 
-        checkPoint(ENQUE, 500) {
+
+        checkPoint(ENQUE, LONG_INTERVAL) {
             it[0]?.let {
                 it.setVertexColor(Color.BLUE)
                 graphInvalidate()
             }
         }
 
-        checkPoint(DEQUE, 500) {
+        checkPoint(DEQUE, LONG_INTERVAL) {
             it[0]?.let {
                 it.setDefaultPaint()
                 it.setNodePaint(visitingPaint)
@@ -327,21 +357,21 @@ class GraphActivity : AbstractGraphActivity() {
             }
         }
 
-        checkPoint(EDGE, 300) {
+        checkPoint(EDGE, LONG_INTERVAL) {
             it[0]?.let {
                 it.setEdgeColor(Color.GREEN)
                 graphInvalidate()
             }
         }
 
-        checkPoint(MARK, 10) {
+        checkPoint(MARK, LONG_INTERVAL) {
             it[0]?.let {
                 marked.add(it as Edge)
                 graphInvalidate()
             }
         }
 
-        checkPoint(RESTORE, 10) {
+        checkPoint(RESTORE, SHORT_INTERVAL) {
             it[0]?.let {
 
                 when (it as Edge) {
@@ -353,7 +383,7 @@ class GraphActivity : AbstractGraphActivity() {
             }
         }
 
-        checkPoint(VISITED, 10) {
+        checkPoint(VISITED, SHORT_INTERVAL) {
             it[0]?.let {
                 it.setVertexColor(Color.RED)
                 graphInvalidate()

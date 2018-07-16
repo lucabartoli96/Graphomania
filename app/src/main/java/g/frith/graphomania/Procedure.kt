@@ -1,6 +1,7 @@
 package g.frith.graphomania
 
 import android.os.AsyncTask
+import java.util.*
 
 
 class Procedure<A, B, C>(init: Procedure<A, B, C>.()->Unit) {
@@ -9,7 +10,7 @@ class Procedure<A, B, C>(init: Procedure<A, B, C>.()->Unit) {
 
     private var startAction: (()->Unit)? = null
     private var endAction: ((C)->Unit)? = null
-    private var currentCheckPoint: ((Array<out B?>)->Unit)? = null
+    private var currentAnimation: Animation? = null
 
     private lateinit var code: Animation.(Array<out A>)-> C
 
@@ -25,6 +26,13 @@ class Procedure<A, B, C>(init: Procedure<A, B, C>.()->Unit) {
         endAction = action
     }
 
+    fun abort() {
+        val storeAnimation = currentAnimation
+        if (storeAnimation !== null && storeAnimation.status != AsyncTask.Status.FINISHED) {
+            storeAnimation.cancel(true)
+        }
+    }
+
     fun checkPoint(checkPoint: String, time: Long = 500, action: (Array<out B?>)->Unit) {
         checkPoints[checkPoint] = Pair(action, time)
     }
@@ -35,13 +43,16 @@ class Procedure<A, B, C>(init: Procedure<A, B, C>.()->Unit) {
 
     operator fun invoke(vararg args: A) {
         startAction?.invoke()
-        Animation().execute(*args)
+        currentAnimation = Animation()
+        currentAnimation?.execute(*args)
     }
 
     inner class Animation : AsyncTask<A, B, C>() {
 
+        private val reached = LinkedList<String>()
+
         fun checkPoint(checkPoint: String, vararg args: B) {
-            currentCheckPoint = checkPoints[checkPoint]?.first
+            reached.add(checkPoint)
             publishProgress(*args)
             Thread.sleep(checkPoints[checkPoint]?.second ?: 500)
         }
@@ -55,7 +66,8 @@ class Procedure<A, B, C>(init: Procedure<A, B, C>.()->Unit) {
         }
 
         override fun onProgressUpdate(vararg args: B?) {
-            currentCheckPoint?.invoke(args)
+            val checkPoint = reached.poll()
+            checkPoints[checkPoint]?.first?.invoke(args)
         }
 
         fun procedure(vararg args: A): C {

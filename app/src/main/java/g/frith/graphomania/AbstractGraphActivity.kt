@@ -148,6 +148,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      */
     protected var animationRunning = false
     protected var currentAnimation = ""
+    protected val procedures = mutableListOf<Procedure<*, *, *>>()
 
     protected open fun drawAnimation(canvas: Canvas) {
 
@@ -211,13 +212,11 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         saveAlert = alert(R.string.changes, R.string.want_save ) {
 
             positiveButton(R.string.yes) {
-                Log.d("pos", "Call")
                 save()
                 super.onBackPressed()
             }
 
             negativeButton(R.string.no) {
-                Log.d("neg", "Call")
                 super.onBackPressed()
             }
         }
@@ -282,7 +281,11 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
 
     override fun onBackPressed() {
-
+        if ( animationRunning ) {
+            for ( p in procedures ) {
+                p.abort()
+            }
+        }
         if (!saved) {
             saveAlert.show()
         } else {

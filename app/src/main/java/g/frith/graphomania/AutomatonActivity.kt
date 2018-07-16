@@ -2,6 +2,7 @@ package g.frith.graphomania
 
 import android.animation.ValueAnimator
 import android.graphics.*
+import android.os.Bundle
 import android.view.MotionEvent
 import org.json.JSONObject
 import java.util.*
@@ -405,6 +406,13 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
             }
         }
 
+    }
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        procedures.add(execOnInput)
     }
 
 
