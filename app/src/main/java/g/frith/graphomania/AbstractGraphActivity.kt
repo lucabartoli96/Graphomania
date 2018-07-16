@@ -984,9 +984,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         val gestures = GestureDetectorCompat(this, GraphGestures())
         graphView.setOnTouchListener {view, motionEvent ->
-            gestures.onTouchEvent(motionEvent)
-
             if ( motionEvent != null && !animationRunning ) {
+                gestures.onTouchEvent(motionEvent)
                 when( motionEvent.actionMasked ) {
                     MotionEvent.ACTION_DOWN -> firstPointerDown(motionEvent)
                     MotionEvent.ACTION_MOVE -> firstPointerMove(motionEvent)

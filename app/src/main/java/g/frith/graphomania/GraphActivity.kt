@@ -5,6 +5,8 @@ import android.graphics.Paint
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
+import android.view.View
+import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import org.json.JSONObject
 import java.util.*
 
@@ -86,7 +88,7 @@ class GraphActivity : AbstractGraphActivity() {
 
         procedures.add(dfs)
         procedures.add(bfs)
-        
+
     }
 
 
@@ -107,22 +109,25 @@ class GraphActivity : AbstractGraphActivity() {
 
     override fun firstPointerDown(e: MotionEvent) {
 
-        when {
-            dfsPending -> {
-                val node = getClickedNode(e)
-                if ( node !== null ) {
-                    dfs(node)
-                    dfsPending = false
+        if ( !animationRunning ) {
+
+            when {
+                dfsPending -> {
+                    val node = getClickedNode(e)
+                    if (node !== null) {
+                        dfs(node)
+                        dfsPending = false
+                    }
                 }
-            }
-            bfsPending -> {
-                val node = getClickedNode(e)
-                if ( node !== null ) {
-                    bfs(node)
-                    bfsPending = false
+                bfsPending -> {
+                    val node = getClickedNode(e)
+                    if (node !== null) {
+                        bfs(node)
+                        bfsPending = false
+                    }
                 }
+                else -> super.firstPointerDown(e)
             }
-            else -> super.firstPointerDown(e)
         }
     }
 
@@ -163,6 +168,7 @@ class GraphActivity : AbstractGraphActivity() {
         visitingPaint.color = Color.RED
 
         start {
+            graphToolbar.visibility = View.GONE
             visited = HashMap<Node, Boolean>().apply{
                 for( node in nodes ) {
                     node to false
@@ -172,12 +178,11 @@ class GraphActivity : AbstractGraphActivity() {
             path = mutableSetOf()
             visiting = null
 
-            //currentAnimation = DFS
             animationRunning = true
         }
 
         end {
-            //currentAnimation = ""
+            graphToolbar.visibility = View.VISIBLE
             animationRunning = false
         }
 
@@ -283,6 +288,7 @@ class GraphActivity : AbstractGraphActivity() {
         visitingPaint.color = Color.RED
 
         start {
+            graphToolbar.visibility = View.GONE
             visited = HashMap<Node, Boolean>().apply{
                 for( node in nodes ) {
                     node to false
@@ -295,6 +301,7 @@ class GraphActivity : AbstractGraphActivity() {
         }
 
         end {
+            graphToolbar.visibility = View.VISIBLE
             //currentAnimation = ""
             animationRunning = false
         }
