@@ -17,11 +17,16 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
 
     companion object {
 
+        /**
+         *  Graph components sizes
+         */
         const val EDGE_CURVE = 40f
-
         const val START_ARROW_RADIUS = 30f
         const val START_ARROW_ANGLE = 60f
 
+        /**
+         *  Animation strings
+         */
         const val EXECUTION = "execution"
 
 
@@ -123,12 +128,6 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
     }
 
 
-
-    /**
-     *
-     * Procedures
-     *
-     */
     private val execOnInput = Procedure<String, GraphComponent?, Boolean> {
 
         val EDGE = "edge"
@@ -218,6 +217,10 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
 
     }
 
+
+    /**
+     *  Animation drawing second function
+     */
     override fun drawAnimation(canvas: Canvas) {
         when( currentAnimation ) {
             EXECUTION -> drawInput(canvas)
@@ -226,7 +229,12 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
     }
 
 
-    override val menuItems = mapOf<Int, ()->Unit>(
+    /**
+     *
+     *  Maps the menu item to the action to perform
+     *
+     */
+    override val menuItems = mapOf(
 
             R.string.input_automaton to {
                 if ( nodes.isEmpty() ) {
@@ -275,6 +283,10 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
             var start: Node? = null
         }
 
+
+        /**
+         *  ValueAnimator fields
+         */
         private var firstTime = true
         private var animatingInner = 0f
         private var animationInner: ValueAnimator
@@ -318,6 +330,10 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
             return this === start
         }
 
+
+        /**
+         *  funs
+         */
         override fun draw(canvas: Canvas) {
 
             if ( final || animationInner.isRunning ) {
@@ -410,9 +426,12 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
     }
 
 
+
+    /**
+     *  onCreate only registers the animated procedures
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         procedures.add(execOnInput)
     }
 
@@ -420,7 +439,7 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
 
     /**
      *
-     * Json related classes
+     * Json related funs
      *
      */
     override fun getJson(): String {
@@ -689,7 +708,6 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
 
         }.show()
 
-
     }
 
     fun onSymbolsPicked(symbols: List<Char>) {
@@ -726,6 +744,7 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
 
         onSymbolsCancel()
     }
+
 
     fun onSymbolsCancel() {
         pendingEdge = null

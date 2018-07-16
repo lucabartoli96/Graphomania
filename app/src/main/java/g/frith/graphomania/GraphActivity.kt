@@ -13,15 +13,26 @@ import java.util.*
 
 class GraphActivity : AbstractGraphActivity() {
 
-    companion object {
-        const val EDGE_CURVE = 0f
 
-        //const val DFS = "dfs"
-        //const val BFS = "bfs"
+    companion object {
+        /**
+         *  Graph components default sizes constants
+         */
+        const val EDGE_CURVE = 0f
     }
 
+
+
+    /**
+     *  Override abstract property type
+     */
     override val type = "graph"
 
+
+
+    /**
+     *  GraphComponents derivate classes
+     */
     private class GraphNode(x: Float, y: Float): Node(x, y) {
         val edgesTo = mutableListOf<Edge>()
 
@@ -42,7 +53,11 @@ class GraphActivity : AbstractGraphActivity() {
     }
 
 
-    override val menuItems = mapOf<Int, ()->Unit>(
+
+    /**
+     *  maps menu item to action to perform
+     */
+    override val menuItems = mapOf(
 
             R.string.reset_colors to {
                 if ( !animationRunning ) {
@@ -83,6 +98,10 @@ class GraphActivity : AbstractGraphActivity() {
 
     )
 
+
+    /**
+     *  onCreate only registers the animated procedures
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -107,31 +126,9 @@ class GraphActivity : AbstractGraphActivity() {
     private var bfsPending = false
 
 
-    override fun firstPointerDown(e: MotionEvent) {
-
-        if ( !animationRunning ) {
-
-            when {
-                dfsPending -> {
-                    val node = getClickedNode(e)
-                    if (node !== null) {
-                        dfs(node)
-                        dfsPending = false
-                    }
-                }
-                bfsPending -> {
-                    val node = getClickedNode(e)
-                    if (node !== null) {
-                        bfs(node)
-                        bfsPending = false
-                    }
-                }
-                else -> super.firstPointerDown(e)
-            }
-        }
-    }
-
-
+    /**
+     * Resets graph components colors
+     */
     private fun resetColors() {
         for ( node in nodes ) {
             node.setDefaultPaint()
@@ -399,6 +396,13 @@ class GraphActivity : AbstractGraphActivity() {
 
     }
 
+
+
+    /**
+     *
+     *  Json related functions
+     *
+     */
     override fun getJson(): String {
 
         val nodesJson = JsonArr()
@@ -466,6 +470,11 @@ class GraphActivity : AbstractGraphActivity() {
         }
     }
 
+
+
+    /**
+     *  Concrete creation/deletion functions
+     */
     override fun createNode(x: Float, y: Float) {
         nodes.add(GraphNode(x, y))
         graphInvalidate()
@@ -501,6 +510,35 @@ class GraphActivity : AbstractGraphActivity() {
         edge.from.edges.remove(edge)
         (edge.to as GraphNode).edgesTo.remove(edge)
         graphInvalidate()
+    }
+
+
+
+    /**
+     *  Gestures
+     */
+    override fun firstPointerDown(e: MotionEvent) {
+
+        if ( !animationRunning ) {
+
+            when {
+                dfsPending -> {
+                    val node = getClickedNode(e)
+                    if (node !== null) {
+                        dfs(node)
+                        dfsPending = false
+                    }
+                }
+                bfsPending -> {
+                    val node = getClickedNode(e)
+                    if (node !== null) {
+                        bfs(node)
+                        bfsPending = false
+                    }
+                }
+                else -> super.firstPointerDown(e)
+            }
+        }
     }
 
 

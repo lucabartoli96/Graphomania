@@ -28,10 +28,17 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         private val fileName = {type: String, name: String -> "${type}_$name.json"}
 
+
+        /**
+         *  Constants related to export feature
+         */
         const val ALBUM_NAME = "Graphomania"
         const val WRITE_REQUEST_CODE = 1
 
-        // Canvas-related constants (sizes and paints)
+
+        /**
+         *  Default sizes of UI graph components
+         */
         const val NODE_RADIUS = 35f
         const val ENLARGE_TOUCH = 10f
         const val ARROW_ANGLE = 30f
@@ -39,10 +46,19 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         const val NODE_STROKE_WIDTH = 5f
         const val EDGE_STROKE_WIDTH = 4f
 
+        /**
+         *  Animations duration constants
+         */
         const val NODE_ANIM_DURATION: Long = 400
         const val EDGE_ANIM_DURATION: Long = 300
 
 
+        /**
+         *
+         *  Functions to initilize Paint objects
+         *  for graph components
+         *
+         */
         private fun initNodePaint(paint: Paint) {
             paint.style = Paint.Style.STROKE
             paint.strokeWidth = NODE_STROKE_WIDTH
@@ -67,6 +83,9 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         }
 
 
+        /**
+         *  Graph components paint
+         */
         private val nodePaint: Paint = Paint()
         private val selectedNodePaint = Paint()
         private val arcPaint = Paint()
@@ -95,9 +114,10 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     }
 
+
     /**
      *
-     * Write permission related stuff
+     * Write permission stuff
      *
      */
     private val writePermission: Boolean
@@ -133,26 +153,13 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     /**
      *
-     * Graph view is where the graph is drawn,
-     * private, accessed only to invalidate
-     *
-     */
-    private lateinit var graphView: GraphView
-    private var saved = true
-
-
-    /**
-     *
-     * Animator-related stuff
+     * Animation stuff
      *
      */
     protected var animationRunning = false
     protected var currentAnimation = ""
     protected val procedures = mutableListOf<Procedure<*, *, *>>()
-
-    protected open fun drawAnimation(canvas: Canvas) {
-
-    }
+    protected open fun drawAnimation(canvas: Canvas) { }
 
 
     /**
@@ -161,6 +168,16 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
      *
      */
     protected abstract val menuItems: Map<Int, ()->Unit>
+
+
+    /**
+     *
+     * Graph view is where the graph is drawn,
+     * private, accessed only through graphInvalidate fun
+     *
+     */
+    private lateinit var graphView: GraphView
+    private var saved = true
 
 
     protected fun graphInvalidate() {
@@ -187,12 +204,12 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     }
 
 
+
     /**
      *
      * Alerts
      *
      */
-
     private lateinit var saveAlert: AlertDialog
     private lateinit var deleteAlert: AlertDialog
 
@@ -262,7 +279,6 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     }
 
 
-
     override fun onOptionsItemSelected(item: MenuItem?) = when(item?.itemId) {
         R.id.save -> {
             save()
@@ -273,7 +289,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             true
         }
         R.id.export -> {
-            dowload()
+            export()
             true
         }
         else -> false
@@ -300,9 +316,10 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         if ( requestCode == WRITE_REQUEST_CODE &&
              grantResults.isNotEmpty() &&
              grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            dowload()
+            export()
         }
     }
+
 
 
     /**
@@ -391,7 +408,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     }
 
-    private fun dowload() {
+    private fun export() {
 
         if (!writePermission) {
             askPermission()
@@ -403,7 +420,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
                 graphImage
             }.post {
                 Toast.makeText(applicationContext,
-                        getString(R.string.download_success),
+                        getString(R.string.export_success),
                         Toast.LENGTH_SHORT).show()
             }
         }
@@ -433,6 +450,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             }
         }
     }
+
 
 
     /**
@@ -563,8 +581,16 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     protected open class Node(var x: Float, var y: Float) : GraphComponent() {
 
+        companion object {
+            var selected: Node? = null
+        }
+
         val edges = mutableListOf<Edge>()
 
+
+        /**
+         *  ValueAnimator fields
+         */
         private var firstTime = true
         private var animatingRadius = 0f
         private var animation: ValueAnimator
@@ -592,10 +618,11 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             }
         }
 
-        companion object {
-            var selected: Node? = null
-        }
 
+
+        /**
+         * funs
+         */
         open fun adj(): Iterable<Node> {
             return edges.map { it.to }
         }
@@ -644,6 +671,9 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             from.edges.add(this)
         }
 
+        /**
+         *  ValueAnimator fields
+         */
         private val p = getPointOnSegment(from.x, from.y, to.x, to.y, 2*NODE_RADIUS)
         private var firstTimeX = true
         private var firstTimeY = true
@@ -701,6 +731,11 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
                    !animationX.isRunning && !animationY.isRunning
         }
 
+
+
+        /**
+         *  funs
+         */
         override fun select() {
             selected = this
         }
@@ -749,6 +784,10 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     }
 
 
+
+    /**
+     *  Animator, singleton class, view is the graphView
+     */
     protected class Animator private constructor(var view: View) {
 
         companion object {
@@ -818,7 +857,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     /**
      *
-     * nodes and edges provide the base of the data structure
+     * nodes provides the base of the data structure
      * that stores the whole graph.
      */
     protected val nodes = mutableListOf<Node>()
@@ -943,8 +982,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     }
 
-    protected open fun longPress(e: MotionEvent) {
-    }
+    protected open fun longPress(e: MotionEvent) { }
 
     protected open fun doubleTap(e: MotionEvent) {
         val node = getClickedNode(e)
@@ -1028,7 +1066,8 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             }
         }
 
-        override fun onFling(e1: MotionEvent?, e2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean {
+        override fun onFling(e1: MotionEvent?, e2: MotionEvent?,
+                             velocityX: Float, velocityY: Float): Boolean {
 
             if ( e1 != null && e2 != null) {
                 val velocity = Math.sqrt(Math.pow(velocityX.toDouble(), 2.0) +
