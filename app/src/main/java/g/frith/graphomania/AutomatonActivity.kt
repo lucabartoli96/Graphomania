@@ -9,6 +9,7 @@ import org.json.JSONObject
 import java.util.*
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.TextView
 import kotlinx.android.synthetic.main.fragment_input_dialog.view.*
 
 
@@ -98,34 +99,9 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
      * Execution animation-related fields
      *
      */
-    private var inputPaint = Paint()
     private var input = ""
-    private var inputRect = Rect()
     private var currentChar = -1
-
-    init {
-        inputPaint.style = Paint.Style.FILL
-        inputPaint.textSize = 40f
-    }
-
-    fun drawInput(canvas: Canvas) {
-
-        if ( currentChar != input.length ) {
-
-            inputPaint.getTextBounds(input, currentChar, input.length, inputRect)
-            val height = inputRect.height()
-
-            val posY = height.toFloat()
-            val posX = canvas.width/2f
-
-            canvas.drawText(input, currentChar, input.length, posX, posY, inputPaint)
-
-            canvas.drawArrowedStraightEdge(posX - START_ARROW_RADIUS, posY,
-                    posX, posY, inputPaint, 0f,
-                    ARROW_RADIUS, ARROW_ANGLE, inputPaint)
-        }
-
-    }
+    private lateinit var inputLabel: TextView
 
 
     private val execOnInput = Procedure<String, GraphComponent?, Boolean> {
@@ -135,11 +111,13 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
         val RESTORE = "restore"
 
         start {
+            replaceToolbar(inputLabel)
             currentAnimation = EXECUTION
             animationRunning = true
         }
 
         end {
+            restoreToolbar()
             currentAnimation = ""
             animationRunning = false
             (if (it) alert(R.string.accepted) else alert (R.string.not_accepted)).show()
@@ -147,6 +125,9 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
 
         procedure { // String
             input = it[0]
+            currentChar = 0
+
+            checkPoint(EDGE, null)
 
             var node = (AutomatonNode.start as AutomatonNode)
             var usedEdge: GraphComponent? = null
@@ -206,6 +187,7 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
                 it.setEdgeColor(Color.GREEN)
                 graphInvalidate()
             }
+            inputLabel.text = input.substring(currentChar)
         }
 
         checkPoint(RESTORE, 10) {
@@ -213,17 +195,6 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
                 it.setDefaultPaint()
                 graphInvalidate()
             }
-        }
-
-    }
-
-
-    /**
-     *  Animation drawing second function
-     */
-    override fun drawAnimation(canvas: Canvas) {
-        when( currentAnimation ) {
-            EXECUTION -> drawInput(canvas)
         }
 
     }
@@ -433,6 +404,9 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         procedures.add(execOnInput)
+
+        inputLabel = TextView(this)
+        inputLabel.textSize = 20f
     }
 
 

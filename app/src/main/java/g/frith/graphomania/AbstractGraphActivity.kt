@@ -1,10 +1,8 @@
 package g.frith.graphomania
 
 import android.Manifest
-import android.animation.Animator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
-import android.app.ActionBar
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Canvas
@@ -18,7 +16,6 @@ import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import android.util.Log
 import java.io.*
 import android.os.AsyncTask
-import android.support.design.widget.AppBarLayout
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.widget.Toast
@@ -294,7 +291,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 HEIGHT
             )
-            gravity = Gravity.CENTER_HORIZONTAL
+            gravity = Gravity.CENTER
             y = -HEIGHT.toFloat()
         }
 
