@@ -1,11 +1,15 @@
 package g.frith.graphomania
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.widget.EditText
+import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import org.json.JSONObject
 import java.util.*
@@ -94,10 +98,12 @@ class GraphActivity : AbstractGraphActivity() {
                 }
             }
 
-
-
     )
 
+    /**
+     *  Toolbar label
+     */
+    private lateinit var label: TextView
 
     /**
      *  onCreate only registers the animated procedures
@@ -107,6 +113,11 @@ class GraphActivity : AbstractGraphActivity() {
 
         procedures.add(dfs)
         procedures.add(bfs)
+
+        label = TextView(this)
+        label.setTextColor(Color.BLACK)
+        label.typeface = Typeface.DEFAULT_BOLD
+        label.textSize = 25f
 
     }
 
@@ -165,7 +176,8 @@ class GraphActivity : AbstractGraphActivity() {
         visitingPaint.color = Color.RED
 
         start {
-            graphToolbar.visibility = View.GONE
+            label.text = "DFS"
+            replaceToolbar(label)
             visited = HashMap<Node, Boolean>().apply{
                 for( node in nodes ) {
                     node to false
@@ -179,7 +191,8 @@ class GraphActivity : AbstractGraphActivity() {
         }
 
         end {
-            graphToolbar.visibility = View.VISIBLE
+            restoreToolbar()
+            //toggleToolbar()
             animationRunning = false
         }
 
@@ -285,7 +298,8 @@ class GraphActivity : AbstractGraphActivity() {
         visitingPaint.color = Color.RED
 
         start {
-            graphToolbar.visibility = View.GONE
+            label.text = "BFS"
+            replaceToolbar(label)
             visited = HashMap<Node, Boolean>().apply{
                 for( node in nodes ) {
                     node to false
@@ -293,13 +307,11 @@ class GraphActivity : AbstractGraphActivity() {
             }
             marked = mutableSetOf()
 
-            //currentAnimation = BFS
             animationRunning = true
         }
 
         end {
-            graphToolbar.visibility = View.VISIBLE
-            //currentAnimation = ""
+            restoreToolbar()
             animationRunning = false
         }
 
@@ -353,7 +365,7 @@ class GraphActivity : AbstractGraphActivity() {
             }
         }
 
-        checkPoint(DEQUE, LONG_INTERVAL) {
+        checkPoint(DEQUE, SHORT_INTERVAL) {
             it[0]?.let {
                 it.setDefaultPaint()
                 it.setNodePaint(visitingPaint)
@@ -368,7 +380,7 @@ class GraphActivity : AbstractGraphActivity() {
             }
         }
 
-        checkPoint(MARK, LONG_INTERVAL) {
+        checkPoint(MARK, SHORT_INTERVAL) {
             it[0]?.let {
                 marked.add(it as Edge)
                 graphInvalidate()

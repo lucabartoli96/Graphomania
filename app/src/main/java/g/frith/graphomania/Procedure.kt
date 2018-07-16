@@ -66,8 +66,10 @@ class Procedure<A, B, C>(init: Procedure<A, B, C>.()->Unit) {
         }
 
         override fun onProgressUpdate(vararg args: B?) {
-            val checkPoint = reached.poll()
-            checkPoints[checkPoint]?.first?.invoke(args)
+            synchronized(reached) {
+                val checkPoint = reached.poll()
+                checkPoints[checkPoint]?.first?.invoke(args)
+            }
         }
 
         fun procedure(vararg args: A): C {

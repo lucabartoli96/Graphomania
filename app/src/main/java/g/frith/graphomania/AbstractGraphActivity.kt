@@ -1,8 +1,10 @@
 package g.frith.graphomania
 
 import android.Manifest
+import android.animation.Animator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.app.ActionBar
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Canvas
@@ -16,10 +18,13 @@ import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import android.util.Log
 import java.io.*
 import android.os.AsyncTask
+import android.support.design.widget.AppBarLayout
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.widget.Toast
 import android.support.v7.app.AlertDialog
+import android.widget.LinearLayout
+
 
 
 abstract class AbstractGraphActivity : AppCompatActivity() {
@@ -34,6 +39,11 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
          */
         const val ALBUM_NAME = "Graphomania"
         const val WRITE_REQUEST_CODE = 1
+
+        /**
+         *  Toolbar height
+         */
+        private val HEIGHT = 112
 
 
         /**
@@ -203,6 +213,34 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
     }
 
+    /**
+     *  Toolbar customize fields
+     */
+
+    private var defaultToolbar = true
+    private lateinit var customToolbar: LinearLayout
+    private lateinit var toolbarEnter: ValueAnimator
+    private lateinit var graphToolbarEnter: ValueAnimator
+
+    protected fun replaceToolbar(view: View) {
+
+        customToolbar.removeAllViews()
+        customToolbar.addView(view)
+
+        if ( defaultToolbar ) {
+            graphToolbarEnter.reverse()
+            toolbarEnter.start()
+            defaultToolbar = false
+        }
+    }
+
+    protected fun restoreToolbar() {
+        if ( !defaultToolbar ) {
+            toolbarEnter.reverse()
+            graphToolbarEnter.start()
+            defaultToolbar = true
+        }
+    }
 
 
     /**
@@ -224,7 +262,6 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_abstract_graph)
         setSupportActionBar(graphToolbar)
-
 
         saveAlert = alert(R.string.changes, R.string.want_save ) {
 
@@ -252,6 +289,28 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
 
         Animator.set(graphView)
 
+        customToolbar = horizontal {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                HEIGHT
+            )
+            gravity = Gravity.CENTER_HORIZONTAL
+            y = -HEIGHT.toFloat()
+        }
+
+        root.addView(customToolbar)
+
+        toolbarEnter = Animator.get().animateInt(HEIGHT, 0,
+                500) {
+            customToolbar.y = -it.toFloat()
+
+        }
+
+        graphToolbarEnter = Animator.get().animateInt(HEIGHT,0,
+                500) {
+            graphToolbar.y = -it.toFloat()
+        }
+
         initGraphGestures()
 
         name = intent.getStringExtra("name")
@@ -260,7 +319,6 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             load()
         }
     }
-
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.graph_toolbar, menu)
