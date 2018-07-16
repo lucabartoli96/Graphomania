@@ -334,9 +334,10 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
                     val allText = bufferedReader.use(BufferedReader::readText)
 
                     inputStream.close()
-                    parseJson(allText)
+                    allText
+                } else {
+                    ""
                 }
-                Unit
             } catch (e: FileNotFoundException) {
                 Log.e("graph activity", "File not found: " + e.toString())
                 ""
@@ -346,6 +347,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
             }
         }.post {
             animationRunning = false
+            parseJson(it)
             graphView.invalidate()
         }
 

@@ -3,6 +3,7 @@ package g.frith.graphomania
 import android.animation.ValueAnimator
 import android.graphics.*
 import android.os.Bundle
+import android.util.Log
 import android.view.MotionEvent
 import org.json.JSONObject
 import java.util.*
@@ -513,6 +514,8 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
                 symbols.add(symbolsJson.getString(sy)[0])
             }
 
+            Log.d("Loop", symbols.toString())
+
             AutomatonEdge(
                     nodes[i], nodes[j],
                     edgeJson.getDouble("curve").toFloat(),
@@ -535,6 +538,8 @@ class AutomatonActivity : AbstractLoopedGraphActivity() {
             for ( sy in 0 until symbolsJson.length() ) {
                 symbols.add(symbolsJson.getString(sy)[0])
             }
+
+            Log.d("Loop", symbols.toString())
 
             (nodes[i] as LoopedNode).loop = AutomatonLoop(
                     nodes[i],
