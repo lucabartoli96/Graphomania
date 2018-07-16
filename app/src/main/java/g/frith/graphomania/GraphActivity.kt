@@ -280,7 +280,7 @@ class GraphActivity : AbstractGraphActivity() {
 
     private val bfs = Procedure<Node, GraphComponent, Unit> {
 
-        val LONG_INTERVAL: Long = 200
+        val LONG_INTERVAL: Long = 150
         val SHORT_INTERVAL: Long = 10
 
         val ENQUE = "enque"
@@ -358,7 +358,7 @@ class GraphActivity : AbstractGraphActivity() {
         }
 
 
-        checkPoint(ENQUE, LONG_INTERVAL) {
+        checkPoint(ENQUE, SHORT_INTERVAL) {
             it[0]?.let {
                 it.setVertexColor(Color.BLUE)
                 graphInvalidate()
