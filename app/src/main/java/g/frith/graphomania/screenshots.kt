@@ -1,5 +1,6 @@
 package g.frith.graphomania
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.os.Environment
 import android.util.Log
@@ -8,6 +9,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import android.graphics.Canvas
+import android.net.Uri
+import java.net.URI
+import android.content.Intent
+
+
 
 
 const val QUALITY = 100
@@ -48,7 +54,7 @@ private fun getFileName(dir: File?, name: String): File? {
 }
 
 
-fun saveScreenshot(albumName: String, name: String, bitmap: Bitmap) {
+fun Activity.saveScreenshot(albumName: String, name: String, bitmap: Bitmap): Uri {
 
     val dir = getPublicAlbumStorageDir(albumName)
     val file = getFileName(dir, name)
@@ -61,4 +67,9 @@ fun saveScreenshot(albumName: String, name: String, bitmap: Bitmap) {
     } catch (e: IOException) {
         Log.e("Screenshots", e.message, e)
     }
+
+    val uri = Uri.fromFile(file)
+    sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri))
+
+    return uri
 }

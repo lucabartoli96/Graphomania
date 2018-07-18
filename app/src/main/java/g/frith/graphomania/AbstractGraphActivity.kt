@@ -3,11 +3,16 @@ package g.frith.graphomania
 import android.Manifest
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.view.GestureDetectorCompat
@@ -16,7 +21,9 @@ import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import android.util.Log
 import java.io.*
 import android.os.AsyncTask
+import android.os.Environment
 import android.support.v4.app.ActivityCompat
+import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
 import android.widget.Toast
 import android.support.v7.app.AlertDialog
@@ -29,6 +36,16 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
     companion object {
 
         private val fileName = {type: String, name: String -> "${type}_$name.json"}
+
+
+        /**
+         *  Notification number
+         */
+        private var notificationNumber: Int = 0
+            get() {
+                field++
+                return field
+            }
 
 
         /**
@@ -471,12 +488,34 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         } else {
             IOTask {
                 val graphImage = graphView.getBitmap()
-                saveScreenshot(ALBUM_NAME, name, graphImage)
-                graphImage
+                val uri = saveScreenshot(ALBUM_NAME, name, graphImage)
+                Pair(uri, graphImage)
             }.post {
-                Toast.makeText(applicationContext,
-                        getString(R.string.export_success),
-                        Toast.LENGTH_SHORT).show()
+                
+                val id = notificationNumber
+
+                Log.d("kdk", it.first.toString())
+
+                val int = Intent()
+                int.action = Intent.ACTION_VIEW
+                int.setDataAndType(it.first, "image/*")
+
+                val contentIntent = PendingIntent.getActivity(this, id,
+                        int, PendingIntent.FLAG_ONE_SHOT
+                )
+
+                val notif = Notification.Builder(this)
+                        .setContentTitle(name)
+                        .setSmallIcon(R.drawable.ic_export)
+                        .setLargeIcon(it.second)
+                        .setStyle(Notification.BigPictureStyle()
+                                .bigPicture(it.second))
+                        .setContentIntent(contentIntent)
+                        .build()
+
+                val notificationManager = NotificationManagerCompat.from(this)
+                notificationManager.notify(id, notif)
+
             }
         }
     }
