@@ -4,7 +4,6 @@ import android.Manifest
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Notification
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -12,7 +11,6 @@ import android.content.pm.PackageManager
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.view.GestureDetectorCompat
@@ -21,7 +19,6 @@ import kotlinx.android.synthetic.main.activity_abstract_graph.*
 import android.util.Log
 import java.io.*
 import android.os.AsyncTask
-import android.os.Environment
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
@@ -57,7 +54,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         /**
          *  Toolbar height
          */
-        private val HEIGHT = 112
+        private const val HEIGHT = 112
 
 
         /**
@@ -67,8 +64,9 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
         const val ENLARGE_TOUCH = 10f
         const val ARROW_ANGLE = 30f
         const val ARROW_RADIUS = 30f
-        const val NODE_STROKE_WIDTH = 5f
-        const val EDGE_STROKE_WIDTH = 4f
+
+        private const val NODE_STROKE_WIDTH = 5f
+        private const val EDGE_STROKE_WIDTH = 4f
 
         /**
          *  Animations duration constants
@@ -491,7 +489,7 @@ abstract class AbstractGraphActivity : AppCompatActivity() {
                 val uri = saveScreenshot(ALBUM_NAME, name, graphImage)
                 Pair(uri, graphImage)
             }.post {
-                
+
                 val id = notificationNumber
 
                 Log.d("kdk", it.first.toString())
